@@ -6,7 +6,7 @@ namespace AvaloniaSidebar;
 public partial class MainWindow : Window
 {
     // Configurable sidebar width - adjust this value to change sidebar width
-    private const double SidebarWidth = 350;
+    private const double SidebarWidth = 250;
 
     public MainWindow()
     {
