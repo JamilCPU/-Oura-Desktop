@@ -1,5 +1,7 @@
 using Avalonia.Controls;
 using Avalonia;
+using AvaloniaSidebar.intr;
+using AvaloniaSidebar.fact;
 
 namespace AvaloniaSidebar;
 
@@ -7,6 +9,7 @@ public partial class MainWindow : Window
 {
     // Configurable sidebar width - adjust this value to change sidebar width
     private const double SidebarWidth = 250;
+    private IScreenSpaceReserver? _spaceReserver;
 
     public MainWindow()
     {
@@ -17,13 +20,23 @@ public partial class MainWindow : Window
         CanResize = false;
         SystemDecorations = SystemDecorations.None;
         
-        // Position window when it opens
         Opened += MainWindow_Opened;
+        Closing += MainWindow_Closing;
     }
 
     private void MainWindow_Opened(object? sender, System.EventArgs e)
     {
         PositionWindow();
+        
+        // Create platform-specific screen space reserver and register
+        _spaceReserver = ScreenSpaceReserverFactory.Create(this);
+        _spaceReserver.Register();
+    }
+
+    private void MainWindow_Closing(object? sender, WindowClosingEventArgs e)
+    {
+        // Unregister screen space reservation when window closes
+        _spaceReserver?.Dispose();
     }
 
     private void PositionWindow()
