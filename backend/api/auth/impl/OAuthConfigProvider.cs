@@ -61,7 +61,6 @@ public class OAuthConfigProvider : IOAuthConfigProvider
 
         var envClientId = Environment.GetEnvironmentVariable("OURA_CLIENT_ID");
         var envClientSecret = Environment.GetEnvironmentVariable("OURA_CLIENT_SECRET");
-        var envRedirectUri = Environment.GetEnvironmentVariable("OURA_REDIRECT_URI");
 
         if (!string.IsNullOrEmpty(envClientId) && !string.IsNullOrEmpty(envClientSecret))
         {
@@ -69,7 +68,7 @@ public class OAuthConfigProvider : IOAuthConfigProvider
             {
                 ClientId = envClientId,
                 ClientSecret = envClientSecret,
-                RedirectUri = envRedirectUri ?? "http://localhost:8080/callback",
+                RedirectUri = "http://localhost:8080/callback",
                 Scopes = new[] { "daily", "heartrate" }
             };
             return _cachedConfig;
