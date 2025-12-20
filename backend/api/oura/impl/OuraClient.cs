@@ -28,7 +28,13 @@ public class OuraClient : IOuraClient
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
         
         var response = await _httpClient.SendAsync(request);
-        response.EnsureSuccessStatusCode();
+        
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorBody = await response.Content.ReadAsStringAsync();
+            throw new HttpRequestException(
+                $"Request to {endpoint} failed with status {(int)response.StatusCode} {response.StatusCode}. Response: {errorBody}");
+        }
         
         var json = await response.Content.ReadAsStringAsync();
         return JsonSerializer.Deserialize<T>(json);
