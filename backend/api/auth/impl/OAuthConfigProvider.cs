@@ -15,7 +15,7 @@ public class OAuthConfigProvider : IOAuthConfigProvider
     public OAuthConfigProvider()
     {
         var solutionRoot = GetSolutionRoot();
-        _configFilePath = Path.Combine(solutionRoot, "AvaloniaSidebar", "config", "oauth-config.json");
+        _configFilePath = Path.Combine(solutionRoot, "backend", "config", "oauth-config.json");
     }
 
     private static string GetSolutionRoot()

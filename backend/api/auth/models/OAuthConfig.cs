@@ -11,7 +11,7 @@ public class OAuthConfig
     public string ClientSecret { get; set; } = string.Empty;
     
     [JsonPropertyName("redirect_uri")]
-    public string RedirectUri { get; set; } = "http://localhost:8080/callback";
+    public string RedirectUri { get; set; } = "https://github.com/JamilCPU/-Oura-Desktop";
     
     [JsonPropertyName("scopes")]
     public string[] Scopes { get; set; } = { "daily", "heartrate" };
