@@ -1,21 +1,25 @@
+using System;
+using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia;
+using Avalonia.Media;
 using AvaloniaSidebar.intr;
 using AvaloniaSidebar.fact;
+using backend.api.auth.intr;
+using backend.api.auth.impl;
 
 namespace AvaloniaSidebar;
 
 public partial class MainWindow : Window
 {
-    // Configurable sidebar width - adjust this value to change sidebar width
     private const double SidebarWidth = 250;
     private IScreenSpaceReserver? _spaceReserver;
+    private IOAuthService? _oauthService;
 
     public MainWindow()
     {
         InitializeComponent();
         
-        // Configure window properties
         WindowStartupLocation = WindowStartupLocation.Manual;
         CanResize = false;
         SystemDecorations = SystemDecorations.None;
@@ -24,13 +28,172 @@ public partial class MainWindow : Window
         Closing += MainWindow_Closing;
     }
 
-    private void MainWindow_Opened(object? sender, System.EventArgs e)
+    private async void MainWindow_Opened(object? sender, EventArgs e)
     {
         PositionWindow();
         
-        // Create platform-specific screen space reserver and register
         _spaceReserver = ScreenSpaceReserverFactory.Create(this);
         _spaceReserver.Register();
+        
+        await InitializeOAuthAsync();
+    }
+    
+    private async Task InitializeOAuthAsync()
+    {
+        try
+        {
+            var configProvider = new OAuthConfigProvider();
+            var tokenStore = new TokenStore();
+            _oauthService = new OAuthService(configProvider, tokenStore);
+            
+            if (!await _oauthService.HasValidTokensAsync())
+            {
+                await ShowAuthorizationDialogAsync();
+            }
+            else
+            {
+                await ShowSuccessMessageAsync("OAuth authorization successful. You are authenticated.");
+            }
+        }
+        catch (InvalidOperationException ex)
+        {
+            await ShowErrorMessageAsync($"OAuth Configuration Error", ex.Message);
+        }
+        catch (Exception ex)
+        {
+            await ShowErrorMessageAsync("OAuth Error", $"An error occurred during OAuth initialization: {ex.Message}");
+        }
+    }
+    
+    private async Task ShowAuthorizationDialogAsync()
+    {
+        var dialog = new Window
+        {
+            Title = "OAuth Authorization Required",
+            Width = 400,
+            Height = 200,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner
+        };
+        
+        var cancelButton = new Button 
+        { 
+            Content = "Cancel", 
+            Margin = new Thickness(0, 0, 10, 0) 
+        };
+        cancelButton.Click += (s, e) => dialog.Close(false);
+        
+        var authorizeButton = new Button { Content = "Authorize" };
+        authorizeButton.Click += async (s, e) =>
+        {
+            dialog.Close(true);
+            if (_oauthService != null)
+            {
+                try
+                {
+                    await _oauthService.StartAuthorizationFlowAsync();
+                    await ShowSuccessMessageAsync("Authorization successful! Your Oura data is now accessible.");
+                }
+                catch (Exception ex)
+                {
+                    await ShowErrorMessageAsync("Authorization Failed", $"Failed to complete authorization: {ex.Message}");
+                }
+            }
+        };
+        
+        dialog.Content = new StackPanel
+        {
+            Margin = new Thickness(20),
+            Children =
+            {
+                new TextBlock
+                {
+                    Text = "You need to authorize this application to access your Oura data. A browser window will open for authorization.",
+                    TextWrapping = TextWrapping.Wrap,
+                    Margin = new Thickness(0, 0, 0, 20)
+                },
+                new StackPanel
+                {
+                    Orientation = Avalonia.Layout.Orientation.Horizontal,
+                    HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right,
+                    Spacing = 10,
+                    Children = { cancelButton, authorizeButton }
+                }
+            }
+        };
+        
+        await dialog.ShowDialog<bool>(this);
+    }
+    
+    private async Task ShowSuccessMessageAsync(string message)
+    {
+        var dialog = new Window
+        {
+            Title = "Success",
+            Width = 350,
+            Height = 150,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner
+        };
+        
+        var okButton = new Button
+        {
+            Content = "OK",
+            HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right,
+            Width = 80
+        };
+        okButton.Click += (s, e) => dialog.Close();
+        
+        dialog.Content = new StackPanel
+        {
+            Margin = new Thickness(20),
+            Children =
+            {
+                new TextBlock
+                {
+                    Text = message,
+                    TextWrapping = TextWrapping.Wrap,
+                    Margin = new Thickness(0, 0, 0, 20)
+                },
+                okButton
+            }
+        };
+        
+        await dialog.ShowDialog(this);
+    }
+    
+    private async Task ShowErrorMessageAsync(string title, string message)
+    {
+        var dialog = new Window
+        {
+            Title = title,
+            Width = 400,
+            Height = 200,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner
+        };
+        
+        var okButton = new Button
+        {
+            Content = "OK",
+            HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right,
+            Width = 80
+        };
+        okButton.Click += (s, e) => dialog.Close();
+        
+        dialog.Content = new StackPanel
+        {
+            Margin = new Thickness(20),
+            Children =
+            {
+                new TextBlock
+                {
+                    Text = message,
+                    TextWrapping = TextWrapping.Wrap,
+                    Margin = new Thickness(0, 0, 0, 20)
+                },
+                okButton
+            }
+        };
+        
+        await dialog.ShowDialog(this);
     }
 
     private void MainWindow_Closing(object? sender, WindowClosingEventArgs e)
