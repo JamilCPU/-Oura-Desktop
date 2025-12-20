@@ -2,3 +2,4 @@ sidebar/bin
 sidebar/obj
 AvaloniaSidebar/bin
 AvaloniaSidebar/obj
+AvaloniaSidebar/config/oauth-config.json

@@ -9,15 +9,13 @@ namespace backend.api.auth.impl;
 public class OAuthConfigProvider : IOAuthConfigProvider
 {
     private readonly string _configFilePath;
-    private readonly string _exampleConfigPath;
     
     private OAuthConfig? _cachedConfig;
 
     public OAuthConfigProvider()
     {
         var solutionRoot = GetSolutionRoot();
-        _configFilePath = Path.Combine(solutionRoot, "AvaloniaSidebar", "config", "oura-config.json");
-        _exampleConfigPath = Path.Combine(solutionRoot, "AvaloniaSidebar", "config", "oura-config.example.json");
+        _configFilePath = Path.Combine(solutionRoot, "AvaloniaSidebar", "config", "oauth-config.json");
     }
 
     private static string GetSolutionRoot()
@@ -74,10 +72,12 @@ public class OAuthConfigProvider : IOAuthConfigProvider
             return _cachedConfig;
         }
 
+        var exampleConfigPath = Path.Combine(Path.GetDirectoryName(_configFilePath) ?? "", "oura-config.example.json");
         throw new InvalidOperationException(
             $"OAuth configuration not found. Please create {_configFilePath} " +
             $"or set OURA_CLIENT_ID and OURA_CLIENT_SECRET environment variables. " +
-            $"See {_exampleConfigPath} for an example.");
+            $"See {exampleConfigPath} for an example. " +
+            $"The config file should contain: {{\"client_id\":\"YOUR_CLIENT_ID\",\"client_secret\":\"YOUR_CLIENT_SECRET\",\"redirect_uri\":\"http://localhost:8080/callback\",\"scopes\":[\"daily\",\"heartrate\"]}}");
     }
 
     public bool IsConfigured()
