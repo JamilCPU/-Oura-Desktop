@@ -67,7 +67,6 @@ public class OAuthConfigProvider : IOAuthConfigProvider
                 ClientId = envClientId,
                 ClientSecret = envClientSecret,
                 RedirectUri = "http://localhost:8080/callback",
-                Scopes = new[] { "daily", "heartrate" }
             };
             return _cachedConfig;
         }
