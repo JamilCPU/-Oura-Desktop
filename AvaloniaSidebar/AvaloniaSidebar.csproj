@@ -20,6 +20,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\backend\api\auth\**\*.cs" />
+    <Compile Include="..\backend\api\**\*.cs" />
   </ItemGroup>
 </Project>
