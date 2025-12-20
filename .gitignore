@@ -4,3 +4,5 @@ AvaloniaSidebar/bin
 AvaloniaSidebar/obj
 backend/config/oauth-config.json
 backend/config/oauth-tokens.json
+tests/backend/api/bin
+tests/backend/api/obj
