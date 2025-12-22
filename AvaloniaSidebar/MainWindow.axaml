@@ -2,8 +2,19 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        mc:Ignorable="d" d:DesignWidth="250" d:DesignHeight="800"
         x:Class="AvaloniaSidebar.MainWindow"
-        Title="AvaloniaSidebar">
-    Welcome to Avalonia!
+        Title="Oura Sidebar"
+        Background="#1E1E1E">
+    <StackPanel Margin="20" Spacing="20">
+        <TextBlock Text="Oura" FontSize="24" FontWeight="Bold" Foreground="White" Margin="0,0,0,10"/>
+        
+        <Border Background="#2D2D2D" CornerRadius="8" Padding="15">
+            <StackPanel Spacing="8">
+                <TextBlock Text="Steps" FontSize="14" Foreground="#CCCCCC"/>
+                <TextBlock x:Name="StepsText" Text="--" FontSize="32" FontWeight="Bold" Foreground="White"/>
+                <TextBlock x:Name="StepsGoalText" Text="Goal: --" FontSize="12" Foreground="#888888"/>
+            </StackPanel>
+        </Border>
+    </StackPanel>
 </Window>

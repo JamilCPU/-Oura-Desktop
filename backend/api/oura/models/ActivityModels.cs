@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Text.Json.Serialization;
 
 namespace backend.api.oura.models;
@@ -37,6 +37,15 @@ public class DailyActivity
     
     [JsonPropertyName("high_activity_time")]
     public int? HighActivityTime { get; set; }
+    
+    [JsonPropertyName("target_calories")]
+    public int? TargetCalories { get; set; }
+    
+    [JsonPropertyName("target_meters")]
+    public double? TargetMeters { get; set; }
+    
+    [JsonPropertyName("target_steps")]
+    public int? TargetSteps { get; set; }
 }
 
 public class DailyReadiness

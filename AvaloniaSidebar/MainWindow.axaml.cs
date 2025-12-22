@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia;
@@ -7,6 +8,8 @@ using AvaloniaSidebar.intr;
 using AvaloniaSidebar.fact;
 using backend.api.auth.intr;
 using backend.api.auth.impl;
+using backend.api.oura.intr;
+using backend.api.oura.impl;
 
 namespace AvaloniaSidebar;
 
@@ -15,6 +18,7 @@ public partial class MainWindow : Window
     private const double SidebarWidth = 250;
     private IScreenSpaceReserver? _spaceReserver;
     private IOAuthService? _oauthService;
+    private IOuraService? _ouraService;
 
     public MainWindow()
     {
@@ -50,10 +54,9 @@ public partial class MainWindow : Window
             {
                 await ShowAuthorizationDialogAsync();
             }
-            else
-            {
-                await ShowSuccessMessageAsync("OAuth authorization successful. You are authenticated.");
-            }
+            
+            InitializeOuraService();
+            await LoadActivityDataAsync();
         }
         catch (InvalidOperationException ex)
         {
@@ -194,6 +197,48 @@ public partial class MainWindow : Window
         };
         
         await dialog.ShowDialog(this);
+    }
+    
+    private void InitializeOuraService()
+    {
+        if (_oauthService == null)
+            return;
+            
+        var ouraClient = new OuraClient(_oauthService);
+        _ouraService = new OuraService(ouraClient);
+    }
+    
+    private async Task LoadActivityDataAsync()
+    {
+        if (_ouraService == null)
+            return;
+            
+        try
+        {
+            var today = DateTime.UtcNow.ToString("yyyy-MM-dd");
+            var activityResponse = await _ouraService.GetDailyActivityAsync(today, today);
+            
+            if (activityResponse?.Data != null && activityResponse.Data.Count > 0)
+            {
+                var todayActivity = activityResponse.Data.First();
+                var steps = todayActivity.Steps ?? 0;
+                var stepGoal = todayActivity.TargetSteps ?? 
+                              (todayActivity.TargetMeters.HasValue ? (int)(todayActivity.TargetMeters.Value / 0.762) : 10000);
+                
+                StepsText.Text = steps.ToString("N0");
+                StepsGoalText.Text = $"Goal: {stepGoal:N0}";
+            }
+            else
+            {
+                StepsText.Text = "0";
+                StepsGoalText.Text = "Goal: --";
+            }
+        }
+        catch (Exception ex)
+        {
+            StepsText.Text = "Error";
+            StepsGoalText.Text = ex.Message;
+        }
     }
 
     private void MainWindow_Closing(object? sender, WindowClosingEventArgs e)
