@@ -82,6 +82,149 @@ public class OuraServiceTests
     }
 
     [Fact]
+    public async Task GetSleepAsync_ReturnsValidData()
+    {
+        var result = await _ouraService.GetSleepAsync();
+
+        LogResponse("usercollection/sleep", result);
+        
+        Assert.NotNull(result);
+        Assert.NotNull(result.Data);
+    }
+
+    [Fact]
+    public async Task GetDailyActivityAsync_ReturnsValidData()
+    {
+        var result = await _ouraService.GetDailyActivityAsync();
+
+        LogResponse("usercollection/daily_activity", result);
+        
+        Assert.NotNull(result);
+        Assert.NotNull(result.Data);
+    }
+
+    [Fact]
+    public async Task GetDailyReadinessAsync_ReturnsValidData()
+    {
+        var result = await _ouraService.GetDailyReadinessAsync();
+
+        LogResponse("usercollection/daily_readiness", result);
+        
+        Assert.NotNull(result);
+        Assert.NotNull(result.Data);
+    }
+
+    [Fact]
+    public async Task GetHeartRateAsync_ReturnsValidData()
+    {
+        var result = await _ouraService.GetHeartRateAsync();
+
+        LogResponse("usercollection/heartrate", result);
+        
+        Assert.NotNull(result);
+        Assert.NotNull(result.Data);
+    }
+
+    [Fact]
+    public async Task GetWorkoutsAsync_ReturnsValidData()
+    {
+        var result = await _ouraService.GetWorkoutsAsync();
+
+        LogResponse("usercollection/workout", result);
+        
+        Assert.NotNull(result);
+        Assert.NotNull(result.Data);
+    }
+
+    [Fact]
+    public async Task GetSessionsAsync_ReturnsValidData()
+    {
+        var result = await _ouraService.GetSessionsAsync();
+
+        LogResponse("usercollection/session", result);
+        
+        Assert.NotNull(result);
+        Assert.NotNull(result.Data);
+    }
+
+    [Fact]
+    public async Task GetTagsAsync_ReturnsValidData()
+    {
+        var result = await _ouraService.GetTagsAsync();
+
+        LogResponse("usercollection/tag", result);
+        
+        Assert.NotNull(result);
+        Assert.NotNull(result.Data);
+    }
+
+    [Fact]
+    public async Task GetDailyStressAsync_ReturnsValidData()
+    {
+        var result = await _ouraService.GetDailyStressAsync();
+
+        LogResponse("usercollection/daily_stress", result);
+        
+        Assert.NotNull(result);
+        Assert.NotNull(result.Data);
+    }
+
+    [Fact]
+    public async Task GetRestModePeriodsAsync_ReturnsValidData()
+    {
+        var result = await _ouraService.GetRestModePeriodsAsync();
+
+        LogResponse("usercollection/rest_mode_period", result);
+        
+        Assert.NotNull(result);
+        Assert.NotNull(result.Data);
+    }
+
+    [Fact]
+    public async Task GetRingConfigurationAsync_ReturnsValidData()
+    {
+        var result = await _ouraService.GetRingConfigurationAsync();
+
+        LogResponse("usercollection/ring_configuration", result);
+        
+        Assert.NotNull(result);
+        Assert.NotNull(result.Data);
+    }
+
+    [Fact]
+    public async Task GetDailySpo2Async_ReturnsValidData()
+    {
+        var result = await _ouraService.GetDailySpo2Async();
+
+        LogResponse("usercollection/daily_spo2", result);
+        
+        Assert.NotNull(result);
+        Assert.NotNull(result.Data);
+    }
+
+    [Fact]
+    public async Task GetDailyResilienceAsync_ReturnsValidData()
+    {
+        var result = await _ouraService.GetDailyResilienceAsync();
+
+        LogResponse("usercollection/daily_resilience", result);
+        
+        Assert.NotNull(result);
+        Assert.NotNull(result.Data);
+    }
+
+    [Fact]
+    public async Task GetVo2MaxAsync_ReturnsValidData()
+    {
+        var result = await _ouraService.GetVo2MaxAsync();
+
+        LogResponse("usercollection/vo2_max", result);
+        
+        Assert.NotNull(result);
+        Assert.NotNull(result.Data);
+    }
+
+    [Fact]
     public async Task GetAllEndpoints_ReturnValidData()
     {
         await CallAndLogEndpoint("usercollection/personal_info", () => _ouraService.GetPersonalInfoAsync());
@@ -89,7 +232,7 @@ public class OuraServiceTests
         await CallAndLogEndpoint("usercollection/sleep", () => _ouraService.GetSleepAsync());
         await CallAndLogEndpoint("usercollection/daily_activity", () => _ouraService.GetDailyActivityAsync());
         await CallAndLogEndpoint("usercollection/daily_readiness", () => _ouraService.GetDailyReadinessAsync());
-        await CallAndLogEndpoint("usercollection/heartrate", () => _ouraService.GetHeartRateAsync());
+        //await CallAndLogEndpoint("usercollection/heartrate", () => _ouraService.GetHeartRateAsync());
         await CallAndLogEndpoint("usercollection/workout", () => _ouraService.GetWorkoutsAsync());
         await CallAndLogEndpoint("usercollection/session", () => _ouraService.GetSessionsAsync());
         await CallAndLogEndpoint("usercollection/tag", () => _ouraService.GetTagsAsync());
