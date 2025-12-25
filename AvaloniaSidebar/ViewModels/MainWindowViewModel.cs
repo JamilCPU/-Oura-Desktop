@@ -1,5 +1,7 @@
 using System;
+using System.Diagnostics;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using backend.api.oura.intr;
@@ -14,6 +16,12 @@ public class MainWindowViewModel : ViewModelBase, IDisposable
     
     private string _steps = "--";
     private string _stepGoal = "Goal: --";
+    private double _stepsProgress = 0;
+    private double _stepsProgressWidth = 0;
+    private string _heartRateBpm = "--";
+    private string _heartRateTimestamp = "";
+    private string _stressLevel = "--";
+    private string _stressColor = "#888888";
     private bool _isLoading;
     private string? _errorMessage;
 
@@ -23,7 +31,7 @@ public class MainWindowViewModel : ViewModelBase, IDisposable
         
         _pollingTimer = new Timer(_ => 
         {
-            _ = Task.Run(async () => await LoadActivityDataAsync());
+            _ = Task.Run(async () => await LoadAllDataAsync());
         }, null, TimeSpan.Zero, TimeSpan.FromSeconds(PollingIntervalSeconds));
     }
 
@@ -39,6 +47,48 @@ public class MainWindowViewModel : ViewModelBase, IDisposable
         private set => SetProperty(ref _stepGoal, value);
     }
 
+    public double StepsProgress
+    {
+        get => _stepsProgress;
+        private set
+        {
+            if (SetProperty(ref _stepsProgress, value))
+            {
+                StepsProgressWidth = (value / 100.0) * 198;
+            }
+        }
+    }
+
+    public double StepsProgressWidth
+    {
+        get => _stepsProgressWidth;
+        private set => SetProperty(ref _stepsProgressWidth, value);
+    }
+
+    public string HeartRateBpm
+    {
+        get => _heartRateBpm;
+        private set => SetProperty(ref _heartRateBpm, value);
+    }
+
+    public string HeartRateTimestamp
+    {
+        get => _heartRateTimestamp;
+        private set => SetProperty(ref _heartRateTimestamp, value);
+    }
+
+    public string StressLevel
+    {
+        get => _stressLevel;
+        private set => SetProperty(ref _stressLevel, value);
+    }
+
+    public string StressColor
+    {
+        get => _stressColor;
+        private set => SetProperty(ref _stressColor, value);
+    }
+
     public bool IsLoading
     {
         get => _isLoading;
@@ -51,9 +101,9 @@ public class MainWindowViewModel : ViewModelBase, IDisposable
         private set => SetProperty(ref _errorMessage, value);
     }
 
-    public async Task LoadActivityDataAsync()
+    public async Task LoadAllDataAsync()
     {
-        Console.WriteLine("Loading activity...");
+        Console.WriteLine("Loading all data...");
         if (IsLoading)
             return;
 
@@ -63,8 +113,68 @@ public class MainWindowViewModel : ViewModelBase, IDisposable
         try
         {
             var today = DateTime.UtcNow.ToString("yyyy-MM-dd");
+            
+            var heartRateTask = LoadHeartRateDataAsync(today);
+            var activityTask = LoadActivityDataAsync(today);
+            var stressTask = LoadStressDataAsync(today);
+            
+            await Task.WhenAll(heartRateTask, activityTask, stressTask);
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+            Console.WriteLine($"Error loading data: {ex.Message}");
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private async Task LoadHeartRateDataAsync(string today)
+    {
+        try
+        {
+            var heartRateResponse = await _ouraService.GetHeartRateAsync(today, today);
+            
+            if (heartRateResponse?.Data != null && heartRateResponse.Data.Count > 0)
+            {
+                var mostRecent = heartRateResponse.Data
+                    .Where(hr => !string.IsNullOrEmpty(hr.Timestamp) && hr.Bpm.HasValue)
+                    .OrderByDescending(hr => hr.Timestamp)
+                    .FirstOrDefault();
+                
+                if (mostRecent != null && mostRecent.Bpm.HasValue)
+                {
+                    HeartRateBpm = $"{mostRecent.Bpm} bpm";
+                    HeartRateTimestamp = FormatRelativeTime(mostRecent.Timestamp);
+                }
+                else
+                {
+                    HeartRateBpm = "--";
+                    HeartRateTimestamp = "";
+                }
+            }
+            else
+            {
+                HeartRateBpm = "--";
+                HeartRateTimestamp = "";
+            }
+        }
+        catch (Exception ex)
+        {
+            HeartRateBpm = "--";
+            HeartRateTimestamp = "";
+            Console.WriteLine($"Error loading heart rate: {ex.Message}");
+        }
+    }
+
+    private async Task LoadActivityDataAsync(string today)
+    {
+        try
+        {
             var activityResponse = await _ouraService.GetDailyActivityAsync(today, today);
-            Console.Write(activityResponse);
+            
             if (activityResponse?.Data != null && activityResponse.Data.Count > 0)
             {
                 var todayActivity = activityResponse.Data.First();
@@ -75,24 +185,100 @@ public class MainWindowViewModel : ViewModelBase, IDisposable
                                   : 10000);
 
                 Steps = steps.ToString("N0");
-                StepGoal = $"Goal: {stepGoal:N0}";
+                StepGoal = $"{steps:N0} / {stepGoal:N0} steps";
+                
+                if (stepGoal > 0)
+                {
+                    StepsProgress = Math.Min(100, (steps / (double)stepGoal) * 100);
+                }
+                else
+                {
+                    StepsProgress = 0;
+                }
             }
             else
             {
                 Steps = "0";
-                StepGoal = "Goal: --";
+                StepGoal = "0 / -- steps";
+                StepsProgress = 0;
             }
         }
         catch (Exception ex)
         {
-            Steps = "Error";
-            StepGoal = ex.Message;
-            ErrorMessage = ex.Message;
+            Steps = "--";
+            StepGoal = "--";
+            StepsProgress = 0;
+            Console.WriteLine($"Error loading activity: {ex.Message}");
         }
-        finally
+    }
+
+    private async Task LoadStressDataAsync(string today)
+    {
+        try
         {
-            IsLoading = false;
+            var stressResponse = await _ouraService.GetDailyStressAsync(today, today);
+            
+            if (stressResponse?.Data != null && stressResponse.Data.Count > 0)
+            {
+                var todayStress = stressResponse.Data.First();
+                var stressHigh = todayStress.StressHigh ?? 0;
+                var stressMedium = todayStress.StressMedium ?? 0;
+                var stressLow = todayStress.StressLow ?? 0;
+                
+                if (stressHigh > stressMedium && stressHigh > stressLow)
+                {
+                    StressLevel = "High";
+                    StressColor = "#F44336";
+                }
+                else if (stressMedium > stressLow)
+                {
+                    StressLevel = "Medium";
+                    StressColor = "#FF9800";
+                }
+                else
+                {
+                    StressLevel = "Low";
+                    StressColor = "#4CAF50";
+                }
+            }
+            else
+            {
+                StressLevel = "--";
+                StressColor = "#888888";
+            }
         }
+        catch (Exception ex)
+        {
+            StressLevel = "--";
+            StressColor = "#888888";
+            Console.WriteLine($"Error loading stress: {ex.Message}");
+        }
+    }
+
+    private string FormatRelativeTime(string timestamp)
+    {
+        try
+        {
+            if (DateTime.TryParse(timestamp, out var time))
+            {
+                var now = DateTime.UtcNow;
+                var diff = now - time;
+                
+                if (diff.TotalMinutes < 1)
+                    return "Just now";
+                else if (diff.TotalMinutes < 60)
+                    return $"{(int)diff.TotalMinutes} min ago";
+                else if (diff.TotalHours < 24)
+                    return $"{(int)diff.TotalHours} hr ago";
+                else
+                    return $"{(int)diff.TotalDays} day ago";
+            }
+        }
+        catch
+        {
+        }
+        
+        return "";
     }
 
     public void Dispose()

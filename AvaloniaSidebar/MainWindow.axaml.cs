@@ -209,7 +209,7 @@ public partial class MainWindow : Window
         _viewModel = new MainWindowViewModel(ouraService);
         DataContext = _viewModel;
         
-        _ = _viewModel.LoadActivityDataAsync();
+        _ = _viewModel.LoadAllDataAsync();
     }
 
     private void MainWindow_Closing(object? sender, WindowClosingEventArgs e)
