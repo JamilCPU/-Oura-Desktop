@@ -95,7 +95,8 @@ public class OuraServiceTests
     [Fact]
     public async Task GetDailyActivityAsync_ReturnsValidData()
     {
-        var result = await _ouraService.GetDailyActivityAsync();
+        var today = DateTime.UtcNow.ToString("yyyy-MM-dd");
+        var result = await _ouraService.GetDailyActivityAsync(today, today);
 
         LogResponse("usercollection/daily_activity", result);
         
@@ -230,7 +231,8 @@ public class OuraServiceTests
         await CallAndLogEndpoint("usercollection/personal_info", () => _ouraService.GetPersonalInfoAsync());
         await CallAndLogEndpoint("usercollection/daily_sleep", () => _ouraService.GetDailySleepAsync());
         await CallAndLogEndpoint("usercollection/sleep", () => _ouraService.GetSleepAsync());
-        await CallAndLogEndpoint("usercollection/daily_activity", () => _ouraService.GetDailyActivityAsync());
+        var today = DateTime.UtcNow.ToString("yyyy-MM-dd");
+        await CallAndLogEndpoint("usercollection/daily_activity", () => _ouraService.GetDailyActivityAsync(today, today));
         await CallAndLogEndpoint("usercollection/daily_readiness", () => _ouraService.GetDailyReadinessAsync());
         //await CallAndLogEndpoint("usercollection/heartrate", () => _ouraService.GetHeartRateAsync());
         await CallAndLogEndpoint("usercollection/workout", () => _ouraService.GetWorkoutsAsync());
