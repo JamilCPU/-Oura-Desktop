@@ -112,11 +112,9 @@ public class MainWindowViewModel : ViewModelBase, IDisposable
 
         try
         {
-            var today = DateTime.UtcNow.ToString("yyyy-MM-dd");
-            
-            var heartRateTask = LoadHeartRateDataAsync(today);
-            var activityTask = LoadActivityDataAsync(today);
-            var stressTask = LoadStressDataAsync(today);
+            var heartRateTask = LoadHeartRateDataAsync();
+            var activityTask = LoadActivityDataAsync();
+            var stressTask = LoadStressDataAsync();
             
             await Task.WhenAll(heartRateTask, activityTask, stressTask);
         }
@@ -131,16 +129,11 @@ public class MainWindowViewModel : ViewModelBase, IDisposable
         }
     }
 
-    private async Task LoadHeartRateDataAsync(string today)
+    private async Task LoadHeartRateDataAsync()
     {
         try
         {
-            var endDateString = today;
-            var endDate = DateTime.Parse(today);
-            var startDate = endDate.AddDays(-1);
-            var startDateString = startDate.ToString("yyyy-MM-dd");
-            
-            var heartRateResponse = await _ouraService.GetHeartRateAsync(startDateString, endDateString);
+            var heartRateResponse = await _ouraService.GetHeartRateAsync();
             
             if (heartRateResponse?.Data != null && heartRateResponse.Data.Count > 0)
             {
@@ -175,11 +168,11 @@ public class MainWindowViewModel : ViewModelBase, IDisposable
         }
     }
 
-    private async Task LoadActivityDataAsync(string today)
+    private async Task LoadActivityDataAsync()
     {
         try
         {
-            var activityResponse = await _ouraService.GetDailyActivityAsync(today, today);
+            var activityResponse = await _ouraService.GetDailyActivityAsync();
             
             if (activityResponse?.Data != null && activityResponse.Data.Count > 0)
             {
@@ -218,11 +211,11 @@ public class MainWindowViewModel : ViewModelBase, IDisposable
         }
     }
 
-    private async Task LoadStressDataAsync(string today)
+    private async Task LoadStressDataAsync()
     {
         try
         {
-            var stressResponse = await _ouraService.GetDailyStressAsync(today, today);
+            var stressResponse = await _ouraService.GetDailyStressAsync();
             
             if (stressResponse?.Data != null && stressResponse.Data.Count > 0)
             {
