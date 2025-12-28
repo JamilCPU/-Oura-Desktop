@@ -16,6 +16,8 @@ public class OuraServiceTests
     private readonly ITestOutputHelper _output;
 
     private String _today;
+
+    private String _lastWeek;
     public OuraServiceTests(ITestOutputHelper output)
     {
         _output = output;
@@ -24,7 +26,9 @@ public class OuraServiceTests
         var tokenStore = new TokenStore();
         var oauthService = new OAuthService(configProvider, tokenStore);
         var ouraClient = new OuraClient(oauthService);
-        _today = DateTime.UtcNow.ToString("yyyy-MM-dd");
+        var todayDate = DateTime.UtcNow;
+        _today = todayDate.ToString("yyyy-MM-dd");
+        _lastWeek = todayDate.AddDays(-7).ToString("yyyy-MM-dd");
         _ouraService = new OuraService(ouraClient);
     }
     
@@ -164,8 +168,10 @@ public class OuraServiceTests
     [Fact]
     public async Task GetDailyStressAsync_ReturnsValidData()
     {
-        var result = await _ouraService.GetDailyStressAsync();
-
+        Console.WriteLine(_lastWeek);
+        Console.WriteLine(_today);
+        var result = await _ouraService.GetDailyStressAsync(_lastWeek, _today);
+ 
         LogResponse("usercollection/daily_stress", result);
         
         Assert.NotNull(result);
