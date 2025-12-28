@@ -4,6 +4,7 @@ using backend.api.auth.impl;
 using backend.api.oura.impl;
 using backend.api.oura.intr;
 using backend.api.oura.models;
+using Microsoft.VisualBasic;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -14,6 +15,7 @@ public class OuraServiceTests
     private readonly IOuraService _ouraService;
     private readonly ITestOutputHelper _output;
 
+    private String _today;
     public OuraServiceTests(ITestOutputHelper output)
     {
         _output = output;
@@ -22,6 +24,7 @@ public class OuraServiceTests
         var tokenStore = new TokenStore();
         var oauthService = new OAuthService(configProvider, tokenStore);
         var ouraClient = new OuraClient(oauthService);
+        _today = DateTime.UtcNow.ToString("yyyy-MM-dd");
         _ouraService = new OuraService(ouraClient);
     }
     
@@ -95,8 +98,7 @@ public class OuraServiceTests
     [Fact]
     public async Task GetDailyActivityAsync_ReturnsValidData()
     {
-        var today = DateTime.UtcNow.ToString("yyyy-MM-dd");
-        var result = await _ouraService.GetDailyActivityAsync(today, today);
+        var result = await _ouraService.GetDailyActivityAsync(_today, _today);
 
         LogResponse("usercollection/daily_activity", result);
         
@@ -118,7 +120,7 @@ public class OuraServiceTests
     [Fact]
     public async Task GetHeartRateAsync_ReturnsValidData()
     {
-        var result = await _ouraService.GetHeartRateAsync();
+        var result = await _ouraService.GetHeartRateAsync(_today, _today);
 
         LogResponse("usercollection/heartrate", result);
         
