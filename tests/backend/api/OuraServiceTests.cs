@@ -77,12 +77,10 @@ public class OuraServiceTests
     [Fact]
     public async Task GetDailySleepAsync_WithDates_ReturnsValidData()
     {
-        var startDate = DateTime.UtcNow.AddDays(-7).ToString("yyyy-MM-dd");
-        var endDate = DateTime.UtcNow.ToString("yyyy-MM-dd");
         
-        var result = await _ouraService.GetDailySleepAsync(startDate, endDate);
+        var result = await _ouraService.GetDailySleepAsync();
         
-        LogResponse($"usercollection/daily_sleep?start_date={startDate}&end_date={endDate}", result);
+        LogResponse("usercollection/daily_sleep", result);
 
         Assert.NotNull(result);
         Assert.NotNull(result.Data);
@@ -102,7 +100,7 @@ public class OuraServiceTests
     [Fact]
     public async Task GetDailyActivityAsync_ReturnsValidData()
     {
-        var result = await _ouraService.GetDailyActivityAsync(_today, _today);
+        var result = await _ouraService.GetDailyActivityAsync();
 
         LogResponse("usercollection/daily_activity", result);
         
@@ -124,7 +122,7 @@ public class OuraServiceTests
     [Fact]
     public async Task GetHeartRateAsync_ReturnsValidData()
     {
-        var result = await _ouraService.GetHeartRateAsync(_today, _today);
+        var result = await _ouraService.GetHeartRateAsync();
 
         LogResponse("usercollection/heartrate", result);
         
@@ -168,9 +166,7 @@ public class OuraServiceTests
     [Fact]
     public async Task GetDailyStressAsync_ReturnsValidData()
     {
-        Console.WriteLine(_lastWeek);
-        Console.WriteLine(_today);
-        var result = await _ouraService.GetDailyStressAsync(_lastWeek, _today);
+        var result = await _ouraService.GetDailyStressAsync();
  
         LogResponse("usercollection/daily_stress", result);
         
@@ -239,8 +235,7 @@ public class OuraServiceTests
         await CallAndLogEndpoint("usercollection/personal_info", () => _ouraService.GetPersonalInfoAsync());
         await CallAndLogEndpoint("usercollection/daily_sleep", () => _ouraService.GetDailySleepAsync());
         await CallAndLogEndpoint("usercollection/sleep", () => _ouraService.GetSleepAsync());
-        var today = DateTime.UtcNow.ToString("yyyy-MM-dd");
-        await CallAndLogEndpoint("usercollection/daily_activity", () => _ouraService.GetDailyActivityAsync(today, today));
+        await CallAndLogEndpoint("usercollection/daily_activity", () => _ouraService.GetDailyActivityAsync());
         await CallAndLogEndpoint("usercollection/daily_readiness", () => _ouraService.GetDailyReadinessAsync());
         //await CallAndLogEndpoint("usercollection/heartrate", () => _ouraService.GetHeartRateAsync());
         await CallAndLogEndpoint("usercollection/workout", () => _ouraService.GetWorkoutsAsync());
