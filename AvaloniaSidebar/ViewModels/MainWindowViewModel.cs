@@ -20,6 +20,7 @@ public class MainWindowViewModel : ViewModelBase, IDisposable
     private double _stepsProgressWidth = 0;
     private string _heartRateBpm = "--";
     private string _heartRateTimestamp = "";
+    private string _heartRateColor = "#888888";
     private string _stressLevel = "--";
     private string _stressColor = "#888888";
     private bool _isLoading;
@@ -75,6 +76,12 @@ public class MainWindowViewModel : ViewModelBase, IDisposable
     {
         get => _heartRateTimestamp;
         private set => SetProperty(ref _heartRateTimestamp, value);
+    }
+
+    public string HeartRateColor
+    {
+        get => _heartRateColor;
+        private set => SetProperty(ref _heartRateColor, value);
     }
 
     public string StressLevel
@@ -147,23 +154,36 @@ public class MainWindowViewModel : ViewModelBase, IDisposable
                     var averageBpm = (int)Math.Round(validReadings.Average());
                     HeartRateBpm = $"{averageBpm} bpm";
                     HeartRateTimestamp = "24h avg";
+                    
+                    // Set color based on resting heart rate range (40-100 bpm = green, otherwise orange)
+                    if (averageBpm >= 40 && averageBpm <= 80)
+                    {
+                        HeartRateColor = "#4CAF50"; // Green
+                    }
+                    else
+                    {
+                        HeartRateColor = "#FF9800"; // Orange
+                    }
                 }
                 else
                 {
                     HeartRateBpm = "--";
                     HeartRateTimestamp = "";
+                    HeartRateColor = "#888888"; // Gray for no data
                 }
             }
             else
             {
                 HeartRateBpm = "--";
                 HeartRateTimestamp = "";
+                HeartRateColor = "#888888"; // Gray for no data
             }
         }
         catch (Exception ex)
         {
             HeartRateBpm = "--";
             HeartRateTimestamp = "";
+            HeartRateColor = "#888888"; // Gray for error
             Console.WriteLine($"Error loading heart rate: {ex.Message}");
         }
     }

@@ -13,19 +13,23 @@
         <conv:StringToColorConverter x:Key="StringToColorConverter"/>
     </Window.Resources>
     <ScrollViewer>
-        <StackPanel Margin="12,12,24,12" Spacing="10">
-            <TextBlock Text="Oura" FontSize="20" FontWeight="Bold" Foreground="White" Margin="0,0,0,8"/>
+        <StackPanel Margin="12,12,12,12" Spacing="10">
+            <TextBlock Text="Oura Sidebar" FontSize="20" FontWeight="Bold" Foreground="White" Margin="0,0,0,8"/>
             
             <!-- Heart Rate Card -->
-            <Border Background="#1E1E1E" CornerRadius="10" Padding="8" Margin="12,12,48,12">
+            <Border Background="#1E1E1E" CornerRadius="10" Padding="8" Margin="12,12,12,12">
                 <StackPanel Spacing="6">
                     <TextBlock Text="Avg 24hr Heart Rate" FontSize="12" Foreground="#CCCCCC"/>
-                    <TextBlock Text="{Binding HeartRateBpm}" FontSize="36" FontWeight="Bold" Foreground="White"/>
+                    <TextBlock Text="{Binding HeartRateBpm}" FontSize="36" FontWeight="Bold">
+                        <TextBlock.Foreground>
+                            <SolidColorBrush Color="{Binding HeartRateColor, Converter={StaticResource StringToColorConverter}}"/>
+                        </TextBlock.Foreground>
+                    </TextBlock>
                 </StackPanel>
             </Border>
             
             <!-- Activity Card -->
-            <Border Background="#1E1E1E" CornerRadius="10" Padding="14" Margin="12,12,48,12">
+            <Border Background="#1E1E1E" CornerRadius="10" Padding="14" Margin="12,12,12,12">
                 <StackPanel Spacing="6">
                     <TextBlock Text="Activity" FontSize="12" Foreground="#CCCCCC"/>
                     <TextBlock Text="{Binding Steps}" FontSize="36" FontWeight="Bold" Foreground="White"/>
@@ -39,7 +43,7 @@
             </Border>
             
             <!-- Stress Card -->
-            <Border Background="#1E1E1E" CornerRadius="10" Padding="14" Margin="12,12,48,12">
+            <Border Background="#1E1E1E" CornerRadius="10" Padding="14" Margin="12,12,12,12">
                 <StackPanel Spacing="6">
                     <TextBlock Text="Stress" FontSize="12" Foreground="#CCCCCC"/>
                     <TextBlock Text="{Binding StressLevel}" FontSize="36" FontWeight="Bold">
