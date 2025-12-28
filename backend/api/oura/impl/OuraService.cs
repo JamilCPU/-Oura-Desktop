@@ -9,10 +9,18 @@ namespace backend.api.oura.impl;
 public class OuraService : IOuraService
 {
     private readonly IOuraClient _client;
+    private readonly string _today;
+    private readonly string _yesterday;
+    private readonly string _lastWeek;
     
     public OuraService(IOuraClient client)
     {
         _client = client ?? throw new ArgumentNullException(nameof(client));
+        
+        var todayDate = DateTime.UtcNow;
+        _today = todayDate.ToString("yyyy-MM-dd");
+        _yesterday = todayDate.AddDays(-1).ToString("yyyy-MM-dd");
+        _lastWeek = todayDate.AddDays(-7).ToString("yyyy-MM-dd");
     }
     
     private string BuildEndpoint(string basePath, string? startDate = null, string? endDate = null)
@@ -37,63 +45,63 @@ public class OuraService : IOuraService
         return await _client.GetAsync<ApiResponse<PersonalInfo>>("usercollection/personal_info");
     }
     
-    public async Task<ApiResponse<DailySleep>?> GetDailySleepAsync(string? startDate = null, string? endDate = null)
+    public async Task<ApiResponse<DailySleep>?> GetDailySleepAsync()
     {
-        var endpoint = BuildEndpoint("usercollection/daily_sleep", startDate, endDate);
+        var endpoint = BuildEndpoint("usercollection/daily_sleep", _yesterday, _today);
         return await _client.GetAsync<ApiResponse<DailySleep>>(endpoint);
     }
     
-    public async Task<ApiResponse<Sleep>?> GetSleepAsync(string? startDate = null, string? endDate = null)
+    public async Task<ApiResponse<Sleep>?> GetSleepAsync()
     {
-        var endpoint = BuildEndpoint("usercollection/sleep", startDate, endDate);
+        var endpoint = BuildEndpoint("usercollection/sleep", _yesterday, _today);
         return await _client.GetAsync<ApiResponse<Sleep>>(endpoint);
     }
     
-    public async Task<ApiResponse<DailyActivity>?> GetDailyActivityAsync(string? startDate = null, string? endDate = null)
+    public async Task<ApiResponse<DailyActivity>?> GetDailyActivityAsync()
     {
-        var endpoint = BuildEndpoint("usercollection/daily_activity", startDate, endDate);
+        var endpoint = BuildEndpoint("usercollection/daily_activity", _yesterday, _today);
         return await _client.GetAsync<ApiResponse<DailyActivity>>(endpoint);
     }
     
-    public async Task<ApiResponse<DailyReadiness>?> GetDailyReadinessAsync(string? startDate = null, string? endDate = null)
+    public async Task<ApiResponse<DailyReadiness>?> GetDailyReadinessAsync()
     {
-        var endpoint = BuildEndpoint("usercollection/daily_readiness", startDate, endDate);
+        var endpoint = BuildEndpoint("usercollection/daily_readiness", _yesterday, _today);
         return await _client.GetAsync<ApiResponse<DailyReadiness>>(endpoint);
     }
     
-    public async Task<ApiResponse<HeartRate>?> GetHeartRateAsync(string? startDate = null, string? endDate = null)
+    public async Task<ApiResponse<HeartRate>?> GetHeartRateAsync()
     {
-        var endpoint = BuildEndpoint("usercollection/heartrate", startDate, endDate);
+        var endpoint = BuildEndpoint("usercollection/heartrate", _yesterday, _today);
         return await _client.GetAsync<ApiResponse<HeartRate>>(endpoint);
     }
     
-    public async Task<ApiResponse<Workout>?> GetWorkoutsAsync(string? startDate = null, string? endDate = null)
+    public async Task<ApiResponse<Workout>?> GetWorkoutsAsync()
     {
-        var endpoint = BuildEndpoint("usercollection/workout", startDate, endDate);
+        var endpoint = BuildEndpoint("usercollection/workout", _yesterday, _today);
         return await _client.GetAsync<ApiResponse<Workout>>(endpoint);
     }
     
-    public async Task<ApiResponse<Session>?> GetSessionsAsync(string? startDate = null, string? endDate = null)
+    public async Task<ApiResponse<Session>?> GetSessionsAsync()
     {
-        var endpoint = BuildEndpoint("usercollection/session", startDate, endDate);
+        var endpoint = BuildEndpoint("usercollection/session", _yesterday, _today);
         return await _client.GetAsync<ApiResponse<Session>>(endpoint);
     }
     
-    public async Task<ApiResponse<Tag>?> GetTagsAsync(string? startDate = null, string? endDate = null)
+    public async Task<ApiResponse<Tag>?> GetTagsAsync()
     {
-        var endpoint = BuildEndpoint("usercollection/tag", startDate, endDate);
+        var endpoint = BuildEndpoint("usercollection/tag", _yesterday, _today);
         return await _client.GetAsync<ApiResponse<Tag>>(endpoint);
     }
     
-    public async Task<ApiResponse<DailyStress>?> GetDailyStressAsync(string? startDate = null, string? endDate = null)
+    public async Task<ApiResponse<DailyStress>?> GetDailyStressAsync()
     {
-        var endpoint = BuildEndpoint("usercollection/daily_stress", startDate, endDate);
+        var endpoint = BuildEndpoint("usercollection/daily_stress", _lastWeek, _today);
         return await _client.GetAsync<ApiResponse<DailyStress>>(endpoint);
     }
     
-    public async Task<ApiResponse<RestModePeriod>?> GetRestModePeriodsAsync(string? startDate = null, string? endDate = null)
+    public async Task<ApiResponse<RestModePeriod>?> GetRestModePeriodsAsync()
     {
-        var endpoint = BuildEndpoint("usercollection/rest_mode_period", startDate, endDate);
+        var endpoint = BuildEndpoint("usercollection/rest_mode_period", _yesterday, _today);
         return await _client.GetAsync<ApiResponse<RestModePeriod>>(endpoint);
     }
     
@@ -102,21 +110,21 @@ public class OuraService : IOuraService
         return await _client.GetAsync<ApiResponse<RingConfiguration>>("usercollection/ring_configuration");
     }
     
-    public async Task<ApiResponse<DailySpo2>?> GetDailySpo2Async(string? startDate = null, string? endDate = null)
+    public async Task<ApiResponse<DailySpo2>?> GetDailySpo2Async()
     {
-        var endpoint = BuildEndpoint("usercollection/daily_spo2", startDate, endDate);
+        var endpoint = BuildEndpoint("usercollection/daily_spo2", _yesterday, _today);
         return await _client.GetAsync<ApiResponse<DailySpo2>>(endpoint);
     }
     
-    public async Task<ApiResponse<DailyResilience>?> GetDailyResilienceAsync(string? startDate = null, string? endDate = null)
+    public async Task<ApiResponse<DailyResilience>?> GetDailyResilienceAsync()
     {
-        var endpoint = BuildEndpoint("usercollection/daily_resilience", startDate, endDate);
+        var endpoint = BuildEndpoint("usercollection/daily_resilience", _yesterday, _today);
         return await _client.GetAsync<ApiResponse<DailyResilience>>(endpoint);
     }
     
-    public async Task<ApiResponse<Vo2Max>?> GetVo2MaxAsync(string? startDate = null, string? endDate = null)
+    public async Task<ApiResponse<Vo2Max>?> GetVo2MaxAsync()
     {
-        var endpoint = BuildEndpoint("usercollection/vo2_max", startDate, endDate);
+        var endpoint = BuildEndpoint("usercollection/vo2_max", _yesterday, _today);
         return await _client.GetAsync<ApiResponse<Vo2Max>>(endpoint);
     }
 }
