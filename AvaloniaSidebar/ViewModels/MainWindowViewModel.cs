@@ -18,6 +18,7 @@ public class MainWindowViewModel : ViewModelBase, IDisposable
     private string _stepGoal = "Goal: --";
     private double _stepsProgress = 0;
     private double _stepsProgressWidth = 0;
+    private string _stepsProgressColor = "#888888";
     private string _heartRateBpm = "--";
     private string _heartRateTimestamp = "";
     private string _heartRateColor = "#888888";
@@ -64,6 +65,12 @@ public class MainWindowViewModel : ViewModelBase, IDisposable
     {
         get => _stepsProgressWidth;
         private set => SetProperty(ref _stepsProgressWidth, value);
+    }
+
+    public string StepsProgressColor
+    {
+        get => _stepsProgressColor;
+        private set => SetProperty(ref _stepsProgressColor, value);
     }
 
     public string HeartRateBpm
@@ -208,11 +215,31 @@ public class MainWindowViewModel : ViewModelBase, IDisposable
                 
                 if (stepGoal > 0)
                 {
-                    StepsProgress = Math.Min(100, (steps / (double)stepGoal) * 100);
+                    var progressPercentage = Math.Min(100, (steps / (double)stepGoal) * 100);
+                    StepsProgress = progressPercentage;
+                    
+                    // Set color based on progress percentage
+                    if (progressPercentage < 33)
+                    {
+                        StepsProgressColor = "#F44336"; // Red
+                    }
+                    else if (progressPercentage < 66)
+                    {
+                        StepsProgressColor = "#FF9800"; // Orange
+                    }
+                    else if (progressPercentage < 100)
+                    {
+                        StepsProgressColor = "#FFEB3B"; // Yellow
+                    }
+                    else
+                    {
+                        StepsProgressColor = "#4CAF50"; // Green
+                    }
                 }
                 else
                 {
                     StepsProgress = 0;
+                    StepsProgressColor = "#888888"; // Gray for no goal
                 }
             }
             else
@@ -220,6 +247,7 @@ public class MainWindowViewModel : ViewModelBase, IDisposable
                 Steps = "0";
                 StepGoal = "0 / -- steps";
                 StepsProgress = 0;
+                StepsProgressColor = "#888888"; // Gray for no data
             }
         }
         catch (Exception ex)
@@ -227,6 +255,7 @@ public class MainWindowViewModel : ViewModelBase, IDisposable
             Steps = "--";
             StepGoal = "--";
             StepsProgress = 0;
+            StepsProgressColor = "#888888"; // Gray for error
             Console.WriteLine($"Error loading activity: {ex.Message}");
         }
     }

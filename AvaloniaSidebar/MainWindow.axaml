@@ -37,7 +37,11 @@
                     
                     <!-- Progress Bar -->
                     <Border Background="#1A1A1A" CornerRadius="3" Height="6" Margin="0,2,0,0">
-                        <Border Background="#4CAF50" CornerRadius="3" HorizontalAlignment="Left" Height="6" Width="{Binding StepsProgressWidth}"/>
+                        <Border CornerRadius="3" HorizontalAlignment="Left" Height="6" Width="{Binding StepsProgressWidth}">
+                            <Border.Background>
+                                <SolidColorBrush Color="{Binding StepsProgressColor, Converter={StaticResource StringToColorConverter}}"/>
+                            </Border.Background>
+                        </Border>
                     </Border>
                 </StackPanel>
             </Border>
