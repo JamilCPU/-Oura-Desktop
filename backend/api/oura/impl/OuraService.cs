@@ -124,7 +124,7 @@ public class OuraService : IOuraService
     
     public async Task<ApiResponse<Vo2Max>?> GetVo2MaxAsync()
     {
-        var endpoint = BuildEndpoint("usercollection/vo2_max", _yesterday, _today);
+        var endpoint = BuildEndpoint("usercollection/vO2_max", _lastWeek, _today);
         return await _client.GetAsync<ApiResponse<Vo2Max>>(endpoint);
     }
 }

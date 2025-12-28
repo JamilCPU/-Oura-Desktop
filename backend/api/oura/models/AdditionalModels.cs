@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
@@ -76,10 +76,16 @@ public class DailySpo2
     public string Day { get; set; } = string.Empty;
     
     [JsonPropertyName("spo2_percentage")]
-    public double? Spo2Percentage { get; set; }
+    public Spo2Percentage? Spo2Percentage { get; set; }
     
     [JsonPropertyName("spo2_quality")]
     public string Spo2Quality { get; set; } = string.Empty;
+}
+
+public class Spo2Percentage
+{
+    [JsonPropertyName("average")]
+    public double? Average { get; set; }
 }
 
 public class DailyResilience

@@ -251,17 +251,8 @@ public class OuraServiceTests
     
     private async Task CallAndLogEndpoint<T>(string endpointName, Func<Task<T?>> endpointCall) where T : class
     {
-        try
-        {
-            var result = await endpointCall();
-            LogResponse(endpointName, result);
-            Assert.NotNull(result);
-        }
-        catch (System.Net.Http.HttpRequestException ex)
-        {
-            _output.WriteLine($"Endpoint {endpointName} failed: {ex.Message}");
-            Console.WriteLine($"Endpoint {endpointName} failed: {ex.Message}");
-            throw;
-        }
+        var result = await endpointCall();
+        LogResponse(endpointName, result);
+        Assert.NotNull(result);
     }
 }
