@@ -19,9 +19,8 @@
             <!-- Heart Rate Card -->
             <Border Background="#1E1E1E" CornerRadius="10" Padding="8" Margin="12,12,48,12">
                 <StackPanel Spacing="6">
-                    <TextBlock Text="Heart Rate" FontSize="12" Foreground="#CCCCCC"/>
+                    <TextBlock Text="Avg 24hr Heart Rate" FontSize="12" Foreground="#CCCCCC"/>
                     <TextBlock Text="{Binding HeartRateBpm}" FontSize="36" FontWeight="Bold" Foreground="White"/>
-                    <TextBlock Text="{Binding HeartRateTimestamp}" FontSize="11" Foreground="#888888"/>
                 </StackPanel>
             </Border>
             

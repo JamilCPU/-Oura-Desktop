@@ -135,19 +135,25 @@ public class MainWindowViewModel : ViewModelBase, IDisposable
     {
         try
         {
-            var heartRateResponse = await _ouraService.GetHeartRateAsync(today, today);
+            var endDateString = today;
+            var endDate = DateTime.Parse(today);
+            var startDate = endDate.AddDays(-1);
+            var startDateString = startDate.ToString("yyyy-MM-dd");
+            
+            var heartRateResponse = await _ouraService.GetHeartRateAsync(startDateString, endDateString);
             
             if (heartRateResponse?.Data != null && heartRateResponse.Data.Count > 0)
             {
-                var mostRecent = heartRateResponse.Data
-                    .Where(hr => !string.IsNullOrEmpty(hr.Timestamp) && hr.Bpm.HasValue)
-                    .OrderByDescending(hr => hr.Timestamp)
-                    .FirstOrDefault();
+                var validReadings = heartRateResponse.Data
+                    .Where(hr => hr.Bpm.HasValue)
+                    .Select(hr => hr.Bpm!.Value)
+                    .ToList();
                 
-                if (mostRecent != null && mostRecent.Bpm.HasValue)
+                if (validReadings.Count > 0)
                 {
-                    HeartRateBpm = $"{mostRecent.Bpm} bpm";
-                    HeartRateTimestamp = FormatRelativeTime(mostRecent.Timestamp);
+                    var averageBpm = (int)Math.Round(validReadings.Average());
+                    HeartRateBpm = $"{averageBpm} bpm";
+                    HeartRateTimestamp = "24h avg";
                 }
                 else
                 {
@@ -259,11 +265,11 @@ public class MainWindowViewModel : ViewModelBase, IDisposable
     {
         try
         {
-            if (DateTime.TryParse(timestamp, out var time))
+            if (DateTimeOffset.TryParse(timestamp, out var timeOffset))
             {
-                var now = DateTime.UtcNow;
-                var diff = now - time;
-                
+                var now = DateTimeOffset.UtcNow;
+                var diff = now - timeOffset;
+                Console.WriteLine(diff);
                 if (diff.TotalMinutes < 1)
                     return "Just now";
                 else if (diff.TotalMinutes < 60)
