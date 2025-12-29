@@ -30,6 +30,7 @@ public partial class MainWindow : Window
         
         Opened += MainWindow_Opened;
         Closing += MainWindow_Closing;
+        PropertyChanged += MainWindow_PropertyChanged;
     }
 
     private async void MainWindow_Opened(object? sender, EventArgs e)
@@ -214,9 +215,41 @@ public partial class MainWindow : Window
 
     private void MainWindow_Closing(object? sender, WindowClosingEventArgs e)
     {
-        // Unregister screen space reservation when window closes
         _spaceReserver?.Dispose();
         _viewModel?.Dispose();
+    }
+    
+    private void MainWindow_PropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+    {
+        if (e.Property == Window.WindowStateProperty && _spaceReserver != null)
+        {
+            var newState = (WindowState)e.NewValue!;
+            
+            if (newState == WindowState.Minimized)
+            {
+                // Unreserve screen space when minimized
+                _spaceReserver.Unregister();
+            }
+            else if (newState == WindowState.Normal)
+            {
+                // Ensure window width is maintained
+                Width = SidebarWidth;
+                // Reserve screen space when restored
+                _spaceReserver.Register();
+                // Update position in case screen configuration changed
+                PositionWindow();
+            }
+        }
+    }
+    
+    private void MinimizeButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        WindowState = WindowState.Minimized;
+    }
+    
+    private void CloseButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        Close();
     }
 
     private void PositionWindow()
@@ -242,6 +275,8 @@ public partial class MainWindow : Window
         // Set window position and size
         Position = new PixelPoint((int)x, (int)y);
         Width = SidebarWidth;
+        MinWidth = SidebarWidth;
+        MaxWidth = SidebarWidth;
         Height = screenBounds.Height;
     }
 }
