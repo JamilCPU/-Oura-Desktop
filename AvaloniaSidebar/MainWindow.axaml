@@ -14,18 +14,19 @@
     </Window.Resources>
     <StackPanel>
         <!-- Header with title and buttons -->
-        <Grid Margin="12,12,4,8">
+        <Grid Margin="4,12,4,8">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*" MaxWidth="150"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             
-            <TextBlock Text="Oura Sidebar" FontSize="20" FontWeight="Bold" Foreground="White" 
-                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+            <TextBlock Text="Oura Sidebar" FontSize="16" FontWeight="Bold" Foreground="White" 
+                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis" 
+                       Grid.Column="0" MaxWidth="105" Margin="0,0,0,0"/>
             
-            <StackPanel Orientation="Horizontal" Grid.Column="1" Spacing="4" VerticalAlignment="Center">
+            <StackPanel Orientation="Horizontal" Grid.Column="1" Spacing="0" VerticalAlignment="Center" Margin="0,0,0,0">
                 <Button Name="MinimizeButton" Content="─" Width="24" Height="24" FontSize="16" FontWeight="Bold" 
-                        Background="#2A2A2A" Foreground="#CCCCCC" BorderThickness="0" 
+                        Background="#1E1E1E" Foreground="#CCCCCC" BorderThickness="0" 
                         Cursor="Hand" Click="MinimizeButton_Click" Padding="0">
                     <Button.Styles>
                         <Style Selector="Button:pointerover">
@@ -34,7 +35,7 @@
                     </Button.Styles>
                 </Button>
                 <Button Name="CloseButton" Content="✕" Width="24" Height="24" FontSize="16" FontWeight="Bold" 
-                        Background="#2A2A2A" Foreground="#CCCCCC" BorderThickness="0" 
+                        Background="#1E1E1E" Foreground="#CCCCCC" BorderThickness="0" 
                         Cursor="Hand" Click="CloseButton_Click" Padding="0">
                     <Button.Styles>
                         <Style Selector="Button:pointerover">
