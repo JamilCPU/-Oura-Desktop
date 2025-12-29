@@ -163,7 +163,7 @@ public class MainWindowViewModel : ViewModelBase, IDisposable
                     HeartRateTimestamp = "24h avg";
                     
                     // Set color based on resting heart rate range (40-100 bpm = green, otherwise orange)
-                    if (averageBpm >= 40 && averageBpm <= 80)
+                    if (averageBpm >= 40 && averageBpm <= 100)
                     {
                         HeartRateColor = "#4CAF50"; // Green
                     }
