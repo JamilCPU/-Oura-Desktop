@@ -251,6 +251,36 @@ public partial class MainWindow : Window
     {
         Close();
     }
+    
+    private void SendButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        var textBox = this.FindControl<TextBox>("AdvisorInput");
+        ProcessAdvisorInput(textBox);
+    }
+    
+    private void AdvisorInput_KeyDown(object? sender, Avalonia.Input.KeyEventArgs e)
+    {
+        if (e.Key == Avalonia.Input.Key.Enter)
+        {
+            var textBox = sender as TextBox;
+            ProcessAdvisorInput(textBox);
+            e.Handled = true;
+        }
+    }
+    
+    private void ProcessAdvisorInput(TextBox? textBox)
+    {
+        if (textBox != null && !string.IsNullOrWhiteSpace(textBox.Text))
+        {
+            var inputText = textBox.Text;
+            Console.WriteLine($"Advisor input: {inputText}");
+            
+            // TODO: Replace with LLM/MCP server call
+            // For now, just log to console
+            
+            textBox.Text = string.Empty; // Clear the input after sending
+        }
+    }
 
     private void PositionWindow()
     {

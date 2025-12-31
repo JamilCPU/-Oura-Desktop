@@ -55,7 +55,7 @@ public class Session
     public string StartDatetime { get; set; } = string.Empty;
     
     [JsonPropertyName("end_datetime")]
-    public string EndDatetime { get; set; }
+    public string? EndDatetime { get; set; }
     
     [JsonPropertyName("type")]
     public string Type { get; set; } = string.Empty;
