@@ -14,7 +14,7 @@
     </Window.Resources>
     <StackPanel>
         <!-- Header with title and buttons -->
-        <Grid Margin="4,12,4,8">
+        <Grid Margin="6,12,4,8">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" MaxWidth="150"/>
                 <ColumnDefinition Width="Auto"/>
@@ -48,10 +48,10 @@
         </Grid>
         
         <ScrollViewer>
-            <StackPanel Margin="12,0,12,12" Spacing="10">
+            <StackPanel Margin="6,0,12,12" Spacing="10">
             
             <!-- Heart Rate Card -->
-            <Border Background="#1E1E1E" CornerRadius="10" Padding="8" Margin="12,12,12,12">
+            <Border Background="#1E1E1E" CornerRadius="10" Padding="8" Margin="6,12,12,12">
                 <StackPanel Spacing="6">
                     <TextBlock Text="Avg 24hr Heart Rate" FontSize="12" Foreground="#CCCCCC"/>
                     <TextBlock Text="{Binding HeartRateBpm}" FontSize="36" FontWeight="Bold">
@@ -63,7 +63,7 @@
             </Border>
             
             <!-- Activity Card -->
-            <Border Background="#1E1E1E" CornerRadius="10" Padding="14" Margin="12,12,12,12">
+            <Border Background="#1E1E1E" CornerRadius="10" Padding="14" Margin="6,12,12,12">
                 <StackPanel Spacing="6">
                     <TextBlock Text="Activity" FontSize="12" Foreground="#CCCCCC"/>
                     <TextBlock Text="{Binding Steps}" FontSize="36" FontWeight="Bold" Foreground="White"/>
@@ -81,7 +81,7 @@
             </Border>
             
             <!-- Stress Card -->
-            <Border Background="#1E1E1E" CornerRadius="10" Padding="14" Margin="12,12,12,12">
+            <Border Background="#1E1E1E" CornerRadius="10" Padding="14" Margin="6,12,12,12">
                 <StackPanel Spacing="6">
                     <TextBlock Text="Stress" FontSize="12" Foreground="#CCCCCC"/>
                     <TextBlock Text="{Binding StressLevel}" FontSize="36" FontWeight="Bold">
@@ -89,6 +89,45 @@
                             <SolidColorBrush Color="{Binding StressColor, Converter={StaticResource StringToColorConverter}}"/>
                         </TextBlock.Foreground>
                     </TextBlock>
+                </StackPanel>
+            </Border>
+            
+            <!-- Advisor Input -->
+            <Border Background="#1E1E1E" CornerRadius="10" Padding="14" Margin="6,12,12,12">
+                <StackPanel Spacing="8">
+                    <TextBlock Text="Ask Oura" FontSize="12" Foreground="#CCCCCC" Margin="0,0,0,4"/>
+                    <Grid ColumnDefinitions="*,Auto" Spacing="8">
+                        <TextBox Name="AdvisorInput" 
+                                 Background="#2A2A2A" 
+                                 Foreground="White" 
+                                 BorderThickness="1" 
+                                 BorderBrush="#333333"
+                                 CornerRadius="5"
+                                 Padding="8,6"
+                                 FontSize="12"
+                                 Watermark="Ask a question..."
+                                 KeyDown="AdvisorInput_KeyDown"
+                                 Grid.Column="0"/>
+                        <Button Name="SendButton" 
+                                Content="Send" 
+                                Width="60" 
+                                Height="32"
+                                FontSize="12"
+                                FontWeight="SemiBold"
+                                Background="#4CAF50" 
+                                Foreground="White" 
+                                BorderThickness="0" 
+                                CornerRadius="5"
+                                Cursor="Hand" 
+                                Click="SendButton_Click"
+                                Grid.Column="1">
+                            <Button.Styles>
+                                <Style Selector="Button:pointerover">
+                                    <Setter Property="Background" Value="#45B049"/>
+                                </Style>
+                            </Button.Styles>
+                        </Button>
+                    </Grid>
                 </StackPanel>
             </Border>
             </StackPanel>
