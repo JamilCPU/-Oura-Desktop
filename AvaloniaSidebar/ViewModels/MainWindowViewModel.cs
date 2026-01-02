@@ -26,6 +26,9 @@ public class MainWindowViewModel : ViewModelBase, IDisposable
     private string _stressColor = "#888888";
     private bool _isLoading;
     private string? _errorMessage;
+    private string _advisorResponse = "";
+    private bool _isAdvisorLoading;
+    private string? _advisorErrorMessage;
 
     public MainWindowViewModel(IOuraService ouraService)
     {
@@ -113,6 +116,24 @@ public class MainWindowViewModel : ViewModelBase, IDisposable
     {
         get => _errorMessage;
         private set => SetProperty(ref _errorMessage, value);
+    }
+
+    public string AdvisorResponse
+    {
+        get => _advisorResponse;
+        private set => SetProperty(ref _advisorResponse, value);
+    }
+
+    public bool IsAdvisorLoading
+    {
+        get => _isAdvisorLoading;
+        private set => SetProperty(ref _isAdvisorLoading, value);
+    }
+
+    public string? AdvisorErrorMessage
+    {
+        get => _advisorErrorMessage;
+        private set => SetProperty(ref _advisorErrorMessage, value);
     }
 
     public async Task LoadAllDataAsync()
@@ -327,6 +348,32 @@ public class MainWindowViewModel : ViewModelBase, IDisposable
         }
         
         return "";
+    }
+
+    public async Task ProcessAdvisorQueryAsync(string query, AvaloniaSidebar.Services.AdvisorService advisorService)
+    {
+        if (IsAdvisorLoading || string.IsNullOrWhiteSpace(query))
+            return;
+
+        IsAdvisorLoading = true;
+        AdvisorErrorMessage = null;
+        AdvisorResponse = "";
+
+        try
+        {
+            var response = await advisorService.ProcessQueryAsync(query);
+            AdvisorResponse = response;
+        }
+        catch (Exception ex)
+        {
+            AdvisorErrorMessage = ex.Message;
+            AdvisorResponse = $"Error: {ex.Message}";
+            Console.WriteLine($"Error processing advisor query: {ex.Message}");
+        }
+        finally
+        {
+            IsAdvisorLoading = false;
+        }
     }
 
     public void Dispose()

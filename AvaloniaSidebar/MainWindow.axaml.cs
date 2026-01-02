@@ -6,6 +6,7 @@ using Avalonia.Media;
 using AvaloniaSidebar.intr;
 using AvaloniaSidebar.fact;
 using AvaloniaSidebar.ViewModels;
+using AvaloniaSidebar.Services;
 using backend.api.auth.intr;
 using backend.api.auth.impl;
 using backend.api.oura.intr;
@@ -19,6 +20,7 @@ public partial class MainWindow : Window
     private IScreenSpaceReserver? _spaceReserver;
     private IOAuthService? _oauthService;
     private MainWindowViewModel? _viewModel;
+    private AdvisorService? _advisorService;
 
     public MainWindow()
     {
@@ -199,7 +201,7 @@ public partial class MainWindow : Window
         await dialog.ShowDialog(this);
     }
     
-    private void InitializeViewModel()
+    private async void InitializeViewModel()
     {
         if (_oauthService == null)
             return;
@@ -209,6 +211,32 @@ public partial class MainWindow : Window
         
         _viewModel = new MainWindowViewModel(ouraService);
         DataContext = _viewModel;
+        
+        // Initialize advisor service
+        try
+        {
+            var llmConfigProvider = new backend.api.auth.impl.LlmConfigProvider();
+            var llmService = new LocalLlmService(llmConfigProvider);
+            var mcpClientService = new McpClientService();
+            _advisorService = new AdvisorService(llmService, mcpClientService);
+            
+            // Initialize asynchronously in background
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await _advisorService.InitializeAsync();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error initializing advisor service: {ex.Message}");
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error creating advisor service: {ex.Message}");
+        }
         
         _ = _viewModel.LoadAllDataAsync();
     }
@@ -268,17 +296,21 @@ public partial class MainWindow : Window
         }
     }
     
-    private void ProcessAdvisorInput(TextBox? textBox)
+    private async void ProcessAdvisorInput(TextBox? textBox)
     {
         if (textBox != null && !string.IsNullOrWhiteSpace(textBox.Text))
         {
             var inputText = textBox.Text;
-            Console.WriteLine($"Advisor input: {inputText}");
-            
-            // TODO: Replace with LLM/MCP server call
-            // For now, just log to console
-            
             textBox.Text = string.Empty; // Clear the input after sending
+            
+            if (_viewModel != null && _advisorService != null)
+            {
+                await _viewModel.ProcessAdvisorQueryAsync(inputText, _advisorService);
+            }
+            else
+            {
+                Console.WriteLine("Advisor service not initialized yet. Please wait...");
+            }
         }
     }
 
