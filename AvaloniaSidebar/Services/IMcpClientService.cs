@@ -12,3 +12,5 @@ public interface IMcpClientService
     Task<CallToolResult> CallToolAsync(string name, Dictionary<string, object?> arguments, CancellationToken cancellationToken = default);
     void Dispose();
 }
+
+
