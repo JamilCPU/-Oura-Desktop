@@ -15,7 +15,7 @@ public class LocalLlmService : ILocalLlmService, IDisposable
 {
     private readonly ILlmConfigProvider _configProvider;
     private LLamaWeights? _weights;
-    private ModelContext? _context;
+    private LLamaContext? _context;
     private InteractiveExecutor? _executor;
     private bool _initialized;
 
@@ -44,8 +44,9 @@ public class LocalLlmService : ILocalLlmService, IDisposable
         };
 
         _weights = LLamaWeights.LoadFromFile(modelParams);
-        _context = _weights.CreateContext(modelParams);
-        _executor = new InteractiveExecutor(_context);
+        var context = _weights.CreateContext(modelParams);
+        _context = context;
+        _executor = new InteractiveExecutor(context);
         _initialized = true;
 
         await Task.CompletedTask;
@@ -77,11 +78,12 @@ public class LocalLlmService : ILocalLlmService, IDisposable
 
     public void Dispose()
     {
-        _executor?.Dispose();
+        // InteractiveExecutor doesn't implement IDisposable in LLamaSharp 0.13.0
         _context?.Dispose();
         _weights?.Dispose();
         _initialized = false;
     }
 }
+
 
 
