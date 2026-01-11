@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using ModelContextProtocol.Client;
 using ModelContextProtocol.Protocol;
+using ModelContextProtocol;
 
 namespace AvaloniaSidebar.Services;
 
@@ -46,7 +47,14 @@ public class McpClientService : IMcpClientService, IDisposable
             throw new InvalidOperationException("MCP client not initialized. Call InitializeAsync first.");
         }
 
-        return await _client.ListToolsAsync(cancellationToken);
+        var requestOptions = new RequestOptions();
+        var tools = await _client.ListToolsAsync(requestOptions);
+        // Convert McpClientTool to Tool
+        return tools.Select(t => new Tool
+        {
+            Name = t.Name,
+            Description = t.Description ?? string.Empty
+        }).ToList().AsReadOnly();
     }
 
     public async Task<CallToolResult> CallToolAsync(string name, Dictionary<string, object?> arguments, CancellationToken cancellationToken = default)
@@ -56,7 +64,9 @@ public class McpClientService : IMcpClientService, IDisposable
             throw new InvalidOperationException("MCP client not initialized. Call InitializeAsync first.");
         }
 
-        return await _client.CallToolAsync(name, arguments, cancellationToken);
+        var requestOptions = new RequestOptions();
+        // CallToolAsync signature: (string name, Dictionary<string, object?> arguments, IProgress<ProgressNotificationValue>? progress = null)
+        return await _client.CallToolAsync(name, arguments, null);
     }
 
     private string GetServerExecutablePath()
@@ -97,9 +107,11 @@ public class McpClientService : IMcpClientService, IDisposable
 
     public void Dispose()
     {
-        _client?.Dispose();
+        // McpClient doesn't implement IDisposable in ModelContextProtocol 0.5.0-preview.1
+        _client = null;
         _initialized = false;
     }
 }
+
 
 
