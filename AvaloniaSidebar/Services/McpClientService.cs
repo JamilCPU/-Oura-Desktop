@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using ModelContextProtocol.Client;
 using ModelContextProtocol.Protocol;
+using ModelContextProtocol;
 
 namespace AvaloniaSidebar.Services;
 
@@ -115,5 +116,6 @@ public class McpClientService : IMcpClientService, IDisposable
         _initialized = false;
     }
 }
+
 
 
