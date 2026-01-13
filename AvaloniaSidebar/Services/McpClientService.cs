@@ -46,7 +46,17 @@ public class McpClientService : IMcpClientService, IDisposable
             throw new InvalidOperationException("MCP client not initialized. Call InitializeAsync first.");
         }
 
-        return await _client.ListToolsAsync(cancellationToken);
+        // ListToolsAsync returns IList<McpClientTool>, need to convert to IReadOnlyList<Tool>
+        var clientTools = await _client.ListToolsAsync((ModelContextProtocol.RequestOptions?)null, cancellationToken);
+        
+        // Convert McpClientTool to Tool - map available properties
+        var tools = clientTools.Select(ct => new Tool
+        {
+            Name = ct.Name,
+            Description = ct.Description
+        }).ToList().AsReadOnly();
+        
+        return tools;
     }
 
     public async Task<CallToolResult> CallToolAsync(string name, Dictionary<string, object?> arguments, CancellationToken cancellationToken = default)
@@ -56,7 +66,9 @@ public class McpClientService : IMcpClientService, IDisposable
             throw new InvalidOperationException("MCP client not initialized. Call InitializeAsync first.");
         }
 
-        return await _client.CallToolAsync(name, arguments, cancellationToken);
+        // CallToolAsync signature: (string, Dictionary<string, object?>, RequestOptions?, IProgress<ProgressNotificationValue>?)
+        // Passing null for both optional parameters
+        return await _client.CallToolAsync(name, arguments, null, null);
     }
 
     private string GetServerExecutablePath()
@@ -97,7 +109,9 @@ public class McpClientService : IMcpClientService, IDisposable
 
     public void Dispose()
     {
-        _client?.Dispose();
+        // McpClient doesn't implement IDisposable, so we just mark as uninitialized
+        // The client will be cleaned up when it goes out of scope
+        _client = null;
         _initialized = false;
     }
 }
