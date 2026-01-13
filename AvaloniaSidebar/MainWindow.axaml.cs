@@ -287,6 +287,14 @@ public partial class MainWindow : Window
         Close();
     }
     
+    private void ToggleLlmDownloadSectionButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (_viewModel != null)
+        {
+            _viewModel.IsLlmDownloadSectionExpanded = !_viewModel.IsLlmDownloadSectionExpanded;
+        }
+    }
+    
     private void SendButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         var textBox = this.FindControl<TextBox>("AdvisorInput");
