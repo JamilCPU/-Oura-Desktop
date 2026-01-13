@@ -56,9 +56,50 @@ public class LlmConfigProvider : ILlmConfigProvider
             }
         }
 
-        throw new InvalidOperationException(
-            $"LLM configuration not found. Please create {_configFilePath} " +
-            $"with the following structure: {{\"model_path\":\"./models/llama-3.1-8b-instruct.Q4_K_M.gguf\",\"backend\":\"cpu\",\"context_size\":4096,\"gpu_layer_count\":0}}");
+        // File doesn't exist or is invalid - create it with default structure
+        return CreateDefaultConfigFile();
+    }
+
+    private LlmConfig CreateDefaultConfigFile()
+    {
+        // Ensure the config directory exists
+        var configDirectory = Path.GetDirectoryName(_configFilePath);
+        if (!string.IsNullOrEmpty(configDirectory) && !Directory.Exists(configDirectory))
+        {
+            Directory.CreateDirectory(configDirectory);
+        }
+
+        // Get solution root and create models directory
+        var solutionRoot = GetSolutionRoot();
+        var modelsDirectory = Path.Combine(solutionRoot, "models");
+        
+        // Create models directory if it doesn't exist
+        if (!Directory.Exists(modelsDirectory))
+        {
+            Directory.CreateDirectory(modelsDirectory);
+        }
+
+        // Create default config with absolute path to models directory
+        var defaultModelPath = Path.Combine(modelsDirectory, "llama-3.1-8b-instruct.Q4_K_M.gguf");
+        var defaultConfig = new LlmConfig
+        {
+            ModelPath = defaultModelPath,
+            Backend = "cpu",
+            ContextSize = 4096,
+            GpuLayerCount = 0
+        };
+
+        // Serialize and write to file
+        var jsonOptions = new JsonSerializerOptions
+        {
+            WriteIndented = true
+        };
+        
+        var json = JsonSerializer.Serialize(defaultConfig, jsonOptions);
+        File.WriteAllText(_configFilePath, json);
+
+        _cachedConfig = defaultConfig;
+        return defaultConfig;
     }
 
     public bool IsConfigured()
