@@ -30,6 +30,7 @@ public class MainWindowViewModel : ViewModelBase, IDisposable
     private bool _isAdvisorLoading;
     private string? _advisorErrorMessage;
     private bool _isLlmAvailable;
+    private bool _isLlmDownloadSectionExpanded;
 
     public MainWindowViewModel(IOuraService ouraService)
     {
@@ -150,6 +151,20 @@ public class MainWindowViewModel : ViewModelBase, IDisposable
     }
 
     public bool IsLlmNotAvailable => !_isLlmAvailable;
+
+    public bool IsLlmDownloadSectionExpanded
+    {
+        get => _isLlmDownloadSectionExpanded;
+        set
+        {
+            if (SetProperty(ref _isLlmDownloadSectionExpanded, value))
+            {
+                OnPropertyChanged(nameof(IsLlmDownloadSectionCollapsed));
+            }
+        }
+    }
+
+    public bool IsLlmDownloadSectionCollapsed => !_isLlmDownloadSectionExpanded;
 
     public async Task LoadAllDataAsync()
     {
