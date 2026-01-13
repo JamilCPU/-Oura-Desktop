@@ -1,10 +1,10 @@
 using System;
 using System.IO;
 using System.Text.Json;
-using backend.api.auth.intr;
-using backend.api.auth.models;
+using backend.api.llm.intr;
+using backend.api.llm.models;
 
-namespace backend.api.auth.impl;
+namespace backend.api.llm.impl;
 
 public class LlmConfigProvider : ILlmConfigProvider
 {
@@ -74,5 +74,3 @@ public class LlmConfigProvider : ILlmConfigProvider
         }
     }
 }
-
-

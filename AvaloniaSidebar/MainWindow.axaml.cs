@@ -215,7 +215,7 @@ public partial class MainWindow : Window
         // Initialize advisor service
         try
         {
-            var llmConfigProvider = new backend.api.auth.impl.LlmConfigProvider();
+            var llmConfigProvider = new backend.api.llm.impl.LlmConfigProvider();
             var llmService = new LocalLlmService(llmConfigProvider);
             var mcpClientService = new McpClientService();
             _advisorService = new AdvisorService(llmService, mcpClientService);
