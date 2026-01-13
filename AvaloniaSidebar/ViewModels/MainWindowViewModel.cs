@@ -29,6 +29,7 @@ public class MainWindowViewModel : ViewModelBase, IDisposable
     private string _advisorResponse = "";
     private bool _isAdvisorLoading;
     private string? _advisorErrorMessage;
+    private bool _isLlmAvailable;
 
     public MainWindowViewModel(IOuraService ouraService)
     {
@@ -135,6 +136,20 @@ public class MainWindowViewModel : ViewModelBase, IDisposable
         get => _advisorErrorMessage;
         private set => SetProperty(ref _advisorErrorMessage, value);
     }
+
+    public bool IsLlmAvailable
+    {
+        get => _isLlmAvailable;
+        set
+        {
+            if (SetProperty(ref _isLlmAvailable, value))
+            {
+                OnPropertyChanged(nameof(IsLlmNotAvailable));
+            }
+        }
+    }
+
+    public bool IsLlmNotAvailable => !_isLlmAvailable;
 
     public async Task LoadAllDataAsync()
     {
