@@ -93,70 +93,94 @@
                 </StackPanel>
             </Border>
             
-            <!-- Advisor Input -->
+            <!-- Advisor Section -->
             <Border Background="#1E1E1E" CornerRadius="10" Padding="4,14,14,14" Margin="0,12,24,12">
                 <StackPanel Spacing="8">
-                    <TextBlock Text="Ask Oura Advisor" FontSize="12" Foreground="#CCCCCC" Margin="0,0,0,4"/>
-                    <Grid ColumnDefinitions="*,Auto">
-                        <TextBox Name="AdvisorInput" 
-                                 Background="#2A2A2A" 
-                                 Foreground="White" 
-                                 BorderThickness="1" 
-                                 BorderBrush="#333333"
-                                 CornerRadius="5"
-                                 Padding="8,6"
-                                 FontSize="12"
-                                 Watermark="Ask a question..."
-                                 KeyDown="AdvisorInput_KeyDown"
-                                 Grid.Column="0"
-                                 Margin="0,0,8,0"/>
-                        <Button Name="SendButton" 
-                                Width="32" 
-                                Height="32"
+                    <!-- LLM Available: Show normal advisor interface -->
+                    <StackPanel IsVisible="{Binding IsLlmAvailable}">
+                        <TextBlock Text="Ask Oura Advisor" FontSize="12" Foreground="#CCCCCC" Margin="0,0,0,4"/>
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBox Name="AdvisorInput" 
+                                     Background="#2A2A2A" 
+                                     Foreground="White" 
+                                     BorderThickness="1" 
+                                     BorderBrush="#333333"
+                                     CornerRadius="5"
+                                     Padding="8,6"
+                                     FontSize="12"
+                                     Watermark="Ask a question..."
+                                     KeyDown="AdvisorInput_KeyDown"
+                                     Grid.Column="0"
+                                     Margin="0,0,8,0"/>
+                            <Button Name="SendButton" 
+                                    Width="32" 
+                                    Height="32"
+                                    Background="#4CAF50" 
+                                    Foreground="White" 
+                                    BorderThickness="0" 
+                                    CornerRadius="5"
+                                    Cursor="Hand" 
+                                    Click="SendButton_Click"
+                                    Padding="0"
+                                    Grid.Column="1">
+                                <ic:FluentIcon Icon="Send" IconVariant="Regular" IconSize="Size20"/>
+                                <Button.Styles>
+                                    <Style Selector="Button:pointerover">
+                                        <Setter Property="Background" Value="#45B049"/>
+                                    </Style>
+                                </Button.Styles>
+                            </Button>
+                        </Grid>
+                        
+                        <!-- Advisor Response -->
+                        <Border Background="#2A2A2A" 
+                                CornerRadius="5" 
+                                Padding="8,8" 
+                                Margin="0,8,0,0"
+                                MinHeight="60"
+                                MaxHeight="200">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <StackPanel>
+                                    <TextBlock Text="{Binding AdvisorResponse}" 
+                                               Foreground="White" 
+                                               FontSize="12"
+                                               TextWrapping="Wrap"/>
+                                    <TextBlock Text="Thinking..." 
+                                               Foreground="#888888" 
+                                               FontSize="12"
+                                               IsVisible="{Binding IsAdvisorLoading}"/>
+                                </StackPanel>
+                            </ScrollViewer>
+                        </Border>
+                        
+                        <!-- Advisor Error -->
+                        <TextBlock Text="{Binding AdvisorErrorMessage}" 
+                                   Foreground="#F44336" 
+                                   FontSize="11"
+                                   Margin="0,4,0,0"
+                                   TextWrapping="Wrap"/>
+                    </StackPanel>
+                    
+                    <!-- LLM Not Available: Show disabled message and download button -->
+                    <StackPanel IsVisible="{Binding IsLlmNotAvailable}" Spacing="8">
+                        <TextBlock Text="Advisor disabled as LLM not detected" FontSize="12" Foreground="#CCCCCC" Margin="0,0,0,4"/>
+                        <Button Name="DownloadLlmButton" 
+                                Content="Download Local LLM"
+                                HorizontalAlignment="Stretch"
                                 Background="#4CAF50" 
                                 Foreground="White" 
                                 BorderThickness="0" 
                                 CornerRadius="5"
-                                Cursor="Hand" 
-                                Click="SendButton_Click"
-                                Padding="0"
-                                Grid.Column="1">
-                            <ic:FluentIcon Icon="Send" IconVariant="Regular" IconSize="Size20"/>
+                                Padding="8,6"
+                                FontSize="12"
+                                Cursor="Hand">
                             <Button.Styles>
                                 <Style Selector="Button:pointerover">
                                     <Setter Property="Background" Value="#45B049"/>
                                 </Style>
                             </Button.Styles>
                         </Button>
-                    </Grid>
-                    
-                    <!-- Advisor Response -->
-                    <Border Background="#2A2A2A" 
-                            CornerRadius="5" 
-                            Padding="8,8" 
-                            Margin="0,8,0,0"
-                            MinHeight="60"
-                            MaxHeight="200">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto">
-                            <StackPanel>
-                                <TextBlock Text="{Binding AdvisorResponse}" 
-                                           Foreground="White" 
-                                           FontSize="12"
-                                           TextWrapping="Wrap"/>
-                                <TextBlock Text="Thinking..." 
-                                           Foreground="#888888" 
-                                           FontSize="12"
-                                           IsVisible="{Binding IsAdvisorLoading}"/>
-                            </StackPanel>
-                        </ScrollViewer>
-                    </Border>
-                    
-                    <!-- Advisor Error -->
-                    <TextBlock Text="{Binding AdvisorErrorMessage}" 
-                               Foreground="#F44336" 
-                               FontSize="11"
-                               Margin="0,4,0,0"
-                               TextWrapping="Wrap"/>
+                    </StackPanel>
                 </StackPanel>
             </Border>
             </StackPanel>
