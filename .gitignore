@@ -7,7 +7,7 @@ mcp-server/obj
 backend/config/oauth-config.json
 backend/config/oauth-tokens.json
 backend/config/llm-config.json
-models/
+/models/
 *.gguf
 tests/backend/api/bin
 tests/backend/api/obj
