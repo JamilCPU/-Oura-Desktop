@@ -138,14 +138,16 @@
                             MinHeight="60"
                             MaxHeight="200">
                         <ScrollViewer VerticalScrollBarVisibility="Auto">
-                            <TextBlock Text="{Binding AdvisorResponse}" 
-                                       Foreground="White" 
-                                       FontSize="12"
-                                       TextWrapping="Wrap"/>
-                            <TextBlock Text="Thinking..." 
-                                       Foreground="#888888" 
-                                       FontSize="12"
-                                       IsVisible="{Binding IsAdvisorLoading}"/>
+                            <StackPanel>
+                                <TextBlock Text="{Binding AdvisorResponse}" 
+                                           Foreground="White" 
+                                           FontSize="12"
+                                           TextWrapping="Wrap"/>
+                                <TextBlock Text="Thinking..." 
+                                           Foreground="#888888" 
+                                           FontSize="12"
+                                           IsVisible="{Binding IsAdvisorLoading}"/>
+                            </StackPanel>
                         </ScrollViewer>
                     </Border>
                     

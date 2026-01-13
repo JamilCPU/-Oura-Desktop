@@ -3,9 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using backend.api.auth.impl;
-using backend.api.auth.intr;
-using backend.api.auth.models;
+using backend.api.llm.intr;
 using LLama;
 using LLama.Common;
 
