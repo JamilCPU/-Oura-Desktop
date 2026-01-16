@@ -216,7 +216,8 @@ public partial class MainWindow : Window
         try
         {
             var llmConfigProvider = new backend.api.llm.impl.LlmConfigProvider();
-            var llmService = new LocalLlmService(llmConfigProvider);
+            var modelDownloadService = new backend.api.llm.impl.ModelDownloadService();
+            var llmService = new LocalLlmService(llmConfigProvider, modelDownloadService);
             var mcpClientService = new McpClientService();
             _advisorService = new AdvisorService(llmService, mcpClientService);
             
