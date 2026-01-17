@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using backend.api.llm.impl;
 using backend.api.llm.intr;
 using LLama;
 using LLama.Common;
@@ -12,14 +13,16 @@ namespace AvaloniaSidebar.Services;
 public class LocalLlmService : ILocalLlmService, IDisposable
 {
     private readonly ILlmConfigProvider _configProvider;
+    private readonly IModelDownloadService _modelDownloadService;
     private LLamaWeights? _weights;
     private LLamaContext? _context;
     private InteractiveExecutor? _executor;
     private bool _initialized;
 
-    public LocalLlmService(ILlmConfigProvider configProvider)
+    public LocalLlmService(ILlmConfigProvider configProvider, IModelDownloadService modelDownloadService)
     {
         _configProvider = configProvider ?? throw new ArgumentNullException(nameof(configProvider));
+        _modelDownloadService = modelDownloadService ?? throw new ArgumentNullException(nameof(modelDownloadService));
     }
 
     public async Task InitializeAsync()
@@ -29,10 +32,33 @@ public class LocalLlmService : ILocalLlmService, IDisposable
 
         var config = _configProvider.GetConfig();
         
+        // Check if model file exists, if not, download it
         if (string.IsNullOrEmpty(config.ModelPath) || !File.Exists(config.ModelPath))
         {
-            throw new InvalidOperationException(
-                $"Model file not found at {config.ModelPath}. Please ensure the model file exists.");
+            Console.WriteLine($"Model file not found at {config.ModelPath}. Starting download...");
+            
+            try
+            {
+                await _modelDownloadService.DownloadModelAsync(
+                    ModelDownloadService.DefaultModelUrl,
+                    config.ModelPath,
+                    null,
+                    CancellationToken.None);
+                
+                Console.WriteLine("Model download completed successfully.");
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException(
+                    $"Failed to download model file. {ex.Message}. Please ensure you have a stable internet connection and sufficient disk space.", ex);
+            }
+            
+            // Verify file exists after download
+            if (!File.Exists(config.ModelPath))
+            {
+                throw new InvalidOperationException(
+                    $"Model file was not created at {config.ModelPath} after download.");
+            }
         }
 
         var modelParams = new ModelParams(config.ModelPath)
