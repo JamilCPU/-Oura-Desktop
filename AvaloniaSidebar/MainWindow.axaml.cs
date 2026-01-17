@@ -212,37 +212,31 @@ public partial class MainWindow : Window
         _viewModel = new MainWindowViewModel(ouraService);
         DataContext = _viewModel;
         
-        // Check if LLM model file exists
-        var llmConfigProvider = new backend.api.llm.impl.LlmConfigProvider();
-        var isLlmAvailable = llmConfigProvider.IsConfigured();
-        _viewModel.IsLlmAvailable = isLlmAvailable;
-        
-        // Initialize advisor service only if LLM is available
-        if (isLlmAvailable)
+        // Initialize advisor service
+        try
         {
-            try
+            var llmConfigProvider = new backend.api.llm.impl.LlmConfigProvider();
+            var modelDownloadService = new backend.api.llm.impl.ModelDownloadService();
+            var llmService = new LocalLlmService(llmConfigProvider, modelDownloadService);
+            var mcpClientService = new McpClientService();
+            _advisorService = new AdvisorService(llmService, mcpClientService);
+            
+            // Initialize asynchronously in background
+            _ = Task.Run(async () =>
             {
-                var llmService = new LocalLlmService(llmConfigProvider);
-                var mcpClientService = new McpClientService();
-                _advisorService = new AdvisorService(llmService, mcpClientService);
-                
-                // Initialize asynchronously in background
-                _ = Task.Run(async () =>
+                try
                 {
-                    try
-                    {
-                        await _advisorService.InitializeAsync();
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Error initializing advisor service: {ex.Message}");
-                    }
-                });
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error creating advisor service: {ex.Message}");
-            }
+                    await _advisorService.InitializeAsync();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error initializing advisor service: {ex.Message}");
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error creating advisor service: {ex.Message}");
         }
         
         _ = _viewModel.LoadAllDataAsync();
