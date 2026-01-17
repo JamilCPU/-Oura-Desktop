@@ -13,6 +13,7 @@
     <Window.Resources>
         <conv:StringToColorConverter x:Key="StringToColorConverter"/>
     </Window.Resources>
+
     <StackPanel>
         <!-- Header with title and buttons -->
         <Grid Margin="6,12,4,8">
@@ -49,12 +50,12 @@
         </Grid>
         
         <ScrollViewer>
-            <StackPanel Margin="6,0,12,12" Spacing="10">
+            <StackPanel Margin="6,0,12,12" Spacing="10" HorizontalAlignment="Center">
             
-            <!-- Heart Rate Card -->
+            <!-- Heart Rate Card --> 
             <Border Background="#1E1E1E" CornerRadius="10" Padding="8" Margin="6,12,12,12">
                 <StackPanel Spacing="6">
-                    <TextBlock Text="Avg 24hr Heart Rate" FontSize="12" Foreground="#CCCCCC"/>
+                    <TextBlock Text="Avg 24hr Heart Rate" FontSize="12" HorizontalAlignment="Left" Foreground="#CCCCCC"/>
                     <TextBlock Text="{Binding HeartRateBpm}" FontSize="36" FontWeight="Bold">
                         <TextBlock.Foreground>
                             <SolidColorBrush Color="{Binding HeartRateColor, Converter={StaticResource StringToColorConverter}}"/>
