@@ -61,17 +61,62 @@ public class LocalLlmService : ILocalLlmService, IDisposable
             }
         }
 
+        // Validate file before attempting to load
+        if (!File.Exists(config.ModelPath))
+        {
+            throw new FileNotFoundException($"Model file not found at: {config.ModelPath}");
+        }
+
+        var fileInfo = new FileInfo(config.ModelPath);
+        if (fileInfo.Length == 0)
+        {
+            throw new InvalidOperationException($"Model file is empty: {config.ModelPath}");
+        }
+
+        // Check if file is reasonably sized (at least 1GB for a GGUF model)
+        if (fileInfo.Length < 1024L * 1024 * 1024)
+        {
+            throw new InvalidOperationException(
+                $"Model file appears to be too small ({fileInfo.Length / (1024.0 * 1024 * 1024):F2} GB). " +
+                $"Expected at least 1GB. File may be corrupted or incomplete: {config.ModelPath}");
+        }
+
+        Console.WriteLine($"Loading model from: {config.ModelPath}");
+        Console.WriteLine($"Model file size: {fileInfo.Length / (1024.0 * 1024 * 1024):F2} GB");
+
         var modelParams = new ModelParams(config.ModelPath)
         {
             ContextSize = (uint)config.ContextSize,
             GpuLayerCount = config.Backend.ToLower() == "cpu" ? 0 : config.GpuLayerCount
         };
 
-        _weights = LLamaWeights.LoadFromFile(modelParams);
-        var context = _weights.CreateContext(modelParams);
-        _context = context;
-        _executor = new InteractiveExecutor(context);
-        _initialized = true;
+        try
+        {
+            Console.WriteLine("Loading LLamaWeights...");
+            _weights = LLamaWeights.LoadFromFile(modelParams);
+            Console.WriteLine("LLamaWeights loaded successfully.");
+            
+            Console.WriteLine("Creating LLamaContext...");
+            var context = _weights.CreateContext(modelParams);
+            _context = context;
+            Console.WriteLine("LLamaContext created successfully.");
+            
+            Console.WriteLine("Creating InteractiveExecutor...");
+            _executor = new InteractiveExecutor(context);
+            Console.WriteLine("InteractiveExecutor created successfully.");
+            
+            _initialized = true;
+            Console.WriteLine("LocalLlmService initialized successfully.");
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException(
+                $"Failed to load model from '{config.ModelPath}'. " +
+                $"File exists: {File.Exists(config.ModelPath)}, " +
+                $"File size: {fileInfo.Length} bytes ({fileInfo.Length / (1024.0 * 1024 * 1024):F2} GB). " +
+                $"Error: {ex.Message}. " +
+                $"Inner exception: {ex.InnerException?.Message ?? "None"}", ex);
+        }
 
         await Task.CompletedTask;
     }
