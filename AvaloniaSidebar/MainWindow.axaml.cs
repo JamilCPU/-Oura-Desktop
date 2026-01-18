@@ -1,4 +1,6 @@
 using System;
+using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia;
@@ -212,31 +214,38 @@ public partial class MainWindow : Window
         _viewModel = new MainWindowViewModel(ouraService);
         DataContext = _viewModel;
         
-        // Initialize advisor service
-        try
+        // Check if LLM model file exists
+        var llmConfigProvider = new backend.api.llm.impl.LlmConfigProvider();
+        var isLlmAvailable = llmConfigProvider.IsConfigured();
+        _viewModel.IsLlmAvailable = isLlmAvailable;
+        
+        // Initialize advisor service only if LLM is available
+        if (isLlmAvailable)
         {
-            var llmConfigProvider = new backend.api.llm.impl.LlmConfigProvider();
-            var modelDownloadService = new backend.api.llm.impl.ModelDownloadService();
-            var llmService = new LocalLlmService(llmConfigProvider, modelDownloadService);
-            var mcpClientService = new McpClientService();
-            _advisorService = new AdvisorService(llmService, mcpClientService);
-            
-            // Initialize asynchronously in background
-            _ = Task.Run(async () =>
+            try
             {
-                try
+                var modelDownloadService = new backend.api.llm.impl.ModelDownloadService();
+                var llmService = new LocalLlmService(llmConfigProvider, modelDownloadService);
+                var mcpClientService = new McpClientService();
+                _advisorService = new AdvisorService(llmService, mcpClientService);
+                
+                // Initialize asynchronously in background
+                _ = Task.Run(async () =>
                 {
-                    await _advisorService.InitializeAsync();
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Error initializing advisor service: {ex.Message}");
-                }
-            });
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error creating advisor service: {ex.Message}");
+                    try
+                    {
+                        await _advisorService.InitializeAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error initializing advisor service: {ex.Message}");
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error creating advisor service: {ex.Message}");
+            }
         }
         
         _ = _viewModel.LoadAllDataAsync();
@@ -286,6 +295,123 @@ public partial class MainWindow : Window
         if (_viewModel != null)
         {
             _viewModel.IsLlmDownloadSectionExpanded = !_viewModel.IsLlmDownloadSectionExpanded;
+        }
+    }
+    
+    private async void DownloadLlmButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (_viewModel == null)
+            return;
+            
+        var downloadButton = sender as Button;
+        if (downloadButton != null)
+        {
+            downloadButton.IsEnabled = false;
+            downloadButton.Content = "Downloading... 0%";
+        }
+        
+        try
+        {
+            var llmConfigProvider = new backend.api.llm.impl.LlmConfigProvider();
+            var config = llmConfigProvider.GetConfig();
+            var modelDownloadService = new backend.api.llm.impl.ModelDownloadService();
+            
+            // Get total file size first for accurate percentage calculation
+            long? totalBytes = null;
+            using (var httpClient = new System.Net.Http.HttpClient())
+            {
+                using (var headResponse = await httpClient.SendAsync(
+                    new System.Net.Http.HttpRequestMessage(System.Net.Http.HttpMethod.Head, 
+                        backend.api.llm.impl.ModelDownloadService.DefaultModelUrl),
+                    CancellationToken.None))
+                {
+                    totalBytes = headResponse.Content.Headers.ContentLength;
+                }
+            }
+            
+            // Create progress callback that updates button text
+            var progress = new Progress<long>(bytesDownloaded =>
+            {
+                if (downloadButton != null)
+                {
+                    Avalonia.Threading.UIThread.Post(() =>
+                    {
+                        if (totalBytes.HasValue && totalBytes.Value > 0)
+                        {
+                            var percent = Math.Min(100, (int)((bytesDownloaded * 100) / totalBytes.Value));
+                            downloadButton.Content = $"Downloading... {percent}%";
+                        }
+                        else
+                        {
+                            // If we don't know total size, show MB downloaded
+                            var mbDownloaded = bytesDownloaded / (1024.0 * 1024);
+                            downloadButton.Content = $"Downloading... {mbDownloaded:F1} MB";
+                        }
+                    });
+                }
+            });
+            
+            // Download the model with progress tracking
+            await modelDownloadService.DownloadModelAsync(
+                backend.api.llm.impl.ModelDownloadService.DefaultModelUrl,
+                config.ModelPath,
+                progress,
+                CancellationToken.None);
+            
+            // Validate the model file exists and is usable
+            if (!File.Exists(config.ModelPath))
+            {
+                throw new InvalidOperationException("Model file was not created after download.");
+            }
+            
+            var fileInfo = new FileInfo(config.ModelPath);
+            if (fileInfo.Length == 0)
+            {
+                throw new InvalidOperationException("Downloaded file is empty.");
+            }
+            
+            // Check if file is reasonably sized (at least 1GB for a GGUF model)
+            if (fileInfo.Length < 1024L * 1024 * 1024)
+            {
+                throw new InvalidOperationException("Downloaded file appears to be too small to be a valid model.");
+            }
+            
+            // Update the ViewModel to reflect that LLM is now available
+            _viewModel.IsLlmAvailable = true;
+            
+            // Initialize the advisor service now that the model is available
+            var llmService = new LocalLlmService(llmConfigProvider, modelDownloadService);
+            var mcpClientService = new McpClientService();
+            _advisorService = new AdvisorService(llmService, mcpClientService);
+            
+            // Initialize asynchronously in background
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    Console.WriteLine("Initializing advisor service after model download...");
+                    await _advisorService.InitializeAsync();
+                    Console.WriteLine("Advisor service initialized successfully after model download.");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error initializing advisor service after download: {ex.Message}");
+                }
+            });
+            
+            if (downloadButton != null)
+            {
+                downloadButton.Content = "Download Complete!";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error downloading model: {ex.Message}");
+            if (downloadButton != null)
+            {
+                downloadButton.Content = "Download Failed - Try Again";
+                downloadButton.IsEnabled = true;
+            }
         }
     }
     

@@ -207,7 +207,8 @@
                                     CornerRadius="5"
                                     Padding="8,6"
                                     FontSize="12"
-                                    Cursor="Hand">
+                                    Cursor="Hand"
+                                    Click="DownloadLlmButton_Click">
                                 <Button.Styles>
                                     <Style Selector="Button:pointerover">
                                         <Setter Property="Background" Value="#45B049"/>
