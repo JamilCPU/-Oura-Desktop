@@ -25,8 +25,11 @@ public class AdvisorService
     public async Task InitializeAsync()
     {
         await _llmService.InitializeAsync();
+        Console.WriteLine("LLM Initialized");
         await _mcpClient.InitializeAsync();
+        Console.WriteLine("LLM Initialized");
         _availableTools = await _mcpClient.ListToolsAsync();
+        Console.WriteLine("Tools Listed");
     }
 
     public async Task<string> ProcessQueryAsync(string userQuery, CancellationToken cancellationToken = default)

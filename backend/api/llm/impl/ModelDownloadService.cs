@@ -11,9 +11,7 @@ public class ModelDownloadService : IModelDownloadService
 {
     private readonly HttpClient _httpClient;
     
-    // Default Hugging Face URL for llama-3.1-8b-instruct.Q4_K_M.gguf
-    // Using bartowski's repository which is a common source for GGUF models
-    public const string DefaultModelUrl = "https://huggingface.co/bartowski/Meta-Llama-3.1-8B-Instruct-GGUF/resolve/main/llama-3.1-8b-instruct.Q4_K_M.gguf";
+    public const string DefaultModelUrl = "https://huggingface.co/bartowski/Meta-Llama-3.1-8B-Instruct-GGUF/resolve/main/Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf?download=true";
     
     public ModelDownloadService()
     {
