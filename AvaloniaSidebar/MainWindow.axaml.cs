@@ -234,11 +234,23 @@ public partial class MainWindow : Window
                 {
                     try
                     {
+                        Console.WriteLine("Starting advisor service initialization...");
                         await _advisorService.InitializeAsync();
+                        Console.WriteLine("Advisor service initialized successfully.");
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"Error initializing advisor service: {ex.Message}");
+                        var errorMessage = $"Error initializing advisor service: {ex.Message}";
+                        if (ex.InnerException != null)
+                        {
+                            errorMessage += $"\nInner exception: {ex.InnerException.Message}";
+                        }
+                        Console.WriteLine(errorMessage);
+                        Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                        
+                        // Report error back to UI thread using the window's dispatcher
+                        // We'll use a simpler approach - just log for now, user can check console
+                        // For UI updates, we'd need to capture the window reference
                     }
                 });
             }
