@@ -18,8 +18,8 @@
       <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
     </PackageReference>
     <PackageReference Include="FluentIcons.Avalonia" Version="2.0.316.1" />
-    <PackageReference Include="LLamaSharp" Version="0.13.0" />
-    <PackageReference Include="LLamaSharp.Backend.Cpu" Version="0.13.0" />
+    <PackageReference Include="LLamaSharp" Version="0.25.0" />
+    <PackageReference Include="LLamaSharp.Backend.Cpu" Version="0.25.0" />
     <PackageReference Include="ModelContextProtocol" Version="0.5.0-preview.1" />  </ItemGroup>
 
   <ItemGroup>
