@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using AvaloniaSidebar.Utils;
 using ModelContextProtocol.Protocol;
 
 namespace AvaloniaSidebar.Services;
@@ -14,22 +15,24 @@ public class AdvisorService
 {
     private readonly ILocalLlmService _llmService;
     private readonly IMcpClientService _mcpClient;
+    private readonly Logger _logger;
     private IReadOnlyList<Tool>? _availableTools;
 
     public AdvisorService(ILocalLlmService llmService, IMcpClientService mcpClient)
     {
         _llmService = llmService ?? throw new ArgumentNullException(nameof(llmService));
         _mcpClient = mcpClient ?? throw new ArgumentNullException(nameof(mcpClient));
+        _logger = new Logger("Advisor");
     }
 
     public async Task InitializeAsync()
     {
         await _llmService.InitializeAsync();
-        Console.WriteLine("LLM Initialized");
+        _logger.Log("LLM Initialized");
         await _mcpClient.InitializeAsync();
-        Console.WriteLine("LLM Initialized");
+        _logger.Log("MCP Client Initialized");
         _availableTools = await _mcpClient.ListToolsAsync();
-        Console.WriteLine("Tools Listed");
+        _logger.Log("Tools Listed");
     }
 
     public async Task<string> ProcessQueryAsync(string userQuery, CancellationToken cancellationToken = default)
@@ -38,6 +41,8 @@ public class AdvisorService
         {
             await InitializeAsync();
         }
+
+        _logger.Log("Processing query...");
 
         var toolsDescription = BuildToolsDescription();
         var systemPrompt = BuildSystemPrompt(toolsDescription);
@@ -50,20 +55,24 @@ public class AdvisorService
 
         while (iteration < maxIterations)
         {
+            _logger.Log($"Generating response (iteration {iteration + 1})...");
             var response = await _llmService.GenerateResponseAsync(conversationHistory.ToString(), cancellationToken);
             conversationHistory.AppendLine(response);
 
             var toolCall = ParseToolCall(response);
             if (toolCall == null)
             {
+                _logger.Log("Final response ready");
                 return response.Trim();
             }
 
+            _logger.Log($"Tool call detected: {toolCall.Value.name}");
             var toolResult = await ExecuteToolCallAsync(toolCall.Value.name, toolCall.Value.arguments, cancellationToken);
             conversationHistory.AppendLine($"\nTool Result: {toolResult}\n");
             iteration++;
         }
 
+        _logger.Log("Max iterations reached");
         return conversationHistory.ToString();
     }
 
@@ -131,16 +140,20 @@ If you don't need to call a tool, respond directly to the user's question.";
     {
         try
         {
+            _logger.Log($"Calling tool: {toolName}");
             var result = await _mcpClient.CallToolAsync(toolName, arguments, cancellationToken);
             
             var textContent = result.Content
                 .OfType<TextContentBlock>()
                 .FirstOrDefault();
 
-            return textContent?.Text ?? "Tool executed successfully but returned no text content.";
+            var toolResult = textContent?.Text ?? "Tool executed successfully but returned no text content.";
+            _logger.Log($"Tool result received ({toolResult.Length} chars)");
+            return toolResult;
         }
         catch (Exception ex)
         {
+            _logger.LogError($"Tool error: {ex.Message}", ex);
             return $"Error calling tool {toolName}: {ex.Message}";
         }
     }

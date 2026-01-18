@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using AvaloniaSidebar.Utils;
 using backend.api.oura.intr;
 
 namespace AvaloniaSidebar.ViewModels;
@@ -12,6 +13,7 @@ public class MainWindowViewModel : ViewModelBase, IDisposable
 {
     private readonly IOuraService _ouraService;
     private readonly Timer _pollingTimer;
+    private readonly Logger _logger;
     private const int PollingIntervalSeconds = 30;
     
     private string _steps = "--";
@@ -35,6 +37,7 @@ public class MainWindowViewModel : ViewModelBase, IDisposable
     public MainWindowViewModel(IOuraService ouraService)
     {
         _ouraService = ouraService ?? throw new ArgumentNullException(nameof(ouraService));
+        _logger = new Logger("ViewModel");
         
         _pollingTimer = new Timer(_ => 
         {
@@ -168,7 +171,7 @@ public class MainWindowViewModel : ViewModelBase, IDisposable
 
     public async Task LoadAllDataAsync()
     {
-        Console.WriteLine("Loading all data...");
+        _logger.Log("Loading all data...");
         if (IsLoading)
             return;
 
@@ -186,7 +189,7 @@ public class MainWindowViewModel : ViewModelBase, IDisposable
         catch (Exception ex)
         {
             ErrorMessage = ex.Message;
-            Console.WriteLine($"Error loading data: {ex.Message}");
+            _logger.LogError("Error loading data", ex);
         }
         finally
         {
@@ -242,7 +245,7 @@ public class MainWindowViewModel : ViewModelBase, IDisposable
             HeartRateBpm = "--";
             HeartRateTimestamp = "";
             HeartRateColor = "#888888"; // Gray for error
-            Console.WriteLine($"Error loading heart rate: {ex.Message}");
+            _logger.LogError("Error loading heart rate", ex);
         }
     }
 
@@ -307,7 +310,7 @@ public class MainWindowViewModel : ViewModelBase, IDisposable
             StepGoal = "--";
             StepsProgress = 0;
             StepsProgressColor = "#888888"; // Gray for error
-            Console.WriteLine($"Error loading activity: {ex.Message}");
+            _logger.LogError("Error loading activity", ex);
         }
     }
 
@@ -350,7 +353,7 @@ public class MainWindowViewModel : ViewModelBase, IDisposable
         {
             StressLevel = "--";
             StressColor = "#888888";
-            Console.WriteLine($"Error loading stress: {ex.Message}");
+            _logger.LogError("Error loading stress", ex);
         }
     }
 
@@ -362,7 +365,6 @@ public class MainWindowViewModel : ViewModelBase, IDisposable
             {
                 var now = DateTimeOffset.UtcNow;
                 var diff = now - timeOffset;
-                Console.WriteLine(diff);
                 if (diff.TotalMinutes < 1)
                     return "Just now";
                 else if (diff.TotalMinutes < 60)
@@ -389,16 +391,19 @@ public class MainWindowViewModel : ViewModelBase, IDisposable
         AdvisorErrorMessage = null;
         AdvisorResponse = "";
 
+        _logger.Log($"Query: {query}");
+
         try
         {
             var response = await advisorService.ProcessQueryAsync(query);
             AdvisorResponse = response;
+            _logger.Log($"Response received ({response.Length} chars)");
         }
         catch (Exception ex)
         {
             AdvisorErrorMessage = ex.Message;
             AdvisorResponse = $"Error: {ex.Message}";
-            Console.WriteLine($"Error processing advisor query: {ex.Message}");
+            _logger.LogError("Error processing advisor query", ex);
         }
         finally
         {
