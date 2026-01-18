@@ -330,24 +330,14 @@ public partial class MainWindow : Window
             }
             
             // Create progress callback that updates button text
+            // Progress<T> automatically captures the synchronization context (UI thread)
             var progress = new Progress<long>(bytesDownloaded =>
             {
                 if (downloadButton != null)
                 {
-                    Avalonia.Threading.UIThread.Post(() =>
-                    {
-                        if (totalBytes.HasValue && totalBytes.Value > 0)
-                        {
-                            var percent = Math.Min(100, (int)((bytesDownloaded * 100) / totalBytes.Value));
-                            downloadButton.Content = $"Downloading... {percent}%";
-                        }
-                        else
-                        {
-                            // If we don't know total size, show MB downloaded
-                            var mbDownloaded = bytesDownloaded / (1024.0 * 1024);
-                            downloadButton.Content = $"Downloading... {mbDownloaded:F1} MB";
-                        }
-                    });
+                    // Progress<T> callbacks run on the captured synchronization context (UI thread)
+                        var percent = Math.Min(100, (int)((bytesDownloaded * 100) / totalBytes.Value));
+                        downloadButton.Content = $"Downloading... {percent}%";
                 }
             });
             
