@@ -7,6 +7,7 @@ using Avalonia;
 using Avalonia.Media;
 using AvaloniaSidebar.intr;
 using AvaloniaSidebar.fact;
+using AvaloniaSidebar.Utils;
 using AvaloniaSidebar.ViewModels;
 using AvaloniaSidebar.Services;
 using backend.api.auth.intr;
@@ -23,10 +24,12 @@ public partial class MainWindow : Window
     private IOAuthService? _oauthService;
     private MainWindowViewModel? _viewModel;
     private AdvisorService? _advisorService;
+    private readonly Logger _logger;
 
     public MainWindow()
     {
         InitializeComponent();
+        _logger = new Logger("MainWindow");
         
         WindowStartupLocation = WindowStartupLocation.Manual;
         CanResize = false;
@@ -234,29 +237,19 @@ public partial class MainWindow : Window
                 {
                     try
                     {
-                        Console.WriteLine("Starting advisor service initialization...");
+                        _logger.Log("Starting advisor service initialization...");
                         await _advisorService.InitializeAsync();
-                        Console.WriteLine("Advisor service initialized successfully.");
+                        _logger.Log("Advisor service initialized successfully.");
                     }
                     catch (Exception ex)
                     {
-                        var errorMessage = $"Error initializing advisor service: {ex.Message}";
-                        if (ex.InnerException != null)
-                        {
-                            errorMessage += $"\nInner exception: {ex.InnerException.Message}";
-                        }
-                        Console.WriteLine(errorMessage);
-                        Console.WriteLine($"Stack trace: {ex.StackTrace}");
-                        
-                        // Report error back to UI thread using the window's dispatcher
-                        // We'll use a simpler approach - just log for now, user can check console
-                        // For UI updates, we'd need to capture the window reference
+                        _logger.LogError("Error initializing advisor service", ex);
                     }
                 });
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error creating advisor service: {ex.Message}");
+                _logger.LogError("Error creating advisor service", ex);
             }
         }
         
@@ -391,13 +384,13 @@ public partial class MainWindow : Window
             {
                 try
                 {
-                    Console.WriteLine("Initializing advisor service after model download...");
+                    _logger.Log("Initializing advisor service after model download...");
                     await _advisorService.InitializeAsync();
-                    Console.WriteLine("Advisor service initialized successfully after model download.");
+                    _logger.Log("Advisor service initialized successfully after model download.");
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error initializing advisor service after download: {ex.Message}");
+                    _logger.LogError("Error initializing advisor service after download", ex);
                 }
             });
             
@@ -408,7 +401,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error downloading model: {ex.Message}");
+            _logger.LogError("Error downloading model", ex);
             if (downloadButton != null)
             {
                 downloadButton.Content = "Download Failed - Try Again";
@@ -446,7 +439,7 @@ public partial class MainWindow : Window
             }
             else
             {
-                Console.WriteLine("Advisor service not initialized yet. Please wait...");
+                _logger.Log("Advisor service not initialized yet. Please wait...");
             }
         }
     }

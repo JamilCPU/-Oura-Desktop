@@ -1,6 +1,7 @@
 ﻿using Avalonia;
 using System;
 using System.Runtime.InteropServices;
+using AvaloniaSidebar.Utils;
 
 namespace AvaloniaSidebar;
 
@@ -15,7 +16,8 @@ class Program
     {
         // Allocate console for debugging
         AllocConsole();
-        Console.WriteLine("Application starting...");
+        var logger = new Logger("App");
+        logger.Log("Application starting...");
         
         BuildAvaloniaApp()
             .StartWithClassicDesktopLifetime(args);
