@@ -57,11 +57,17 @@ public class AdvisorService
         {
             _logger.Log($"Generating response (iteration {iteration + 1})...");
             var currentPrompt = conversationHistory.ToString();
+            _logger.Log($"Full prompt length: {currentPrompt.Length} chars");
             // Log a preview of the prompt to debug
             var promptPreview = currentPrompt.Length > 500 
                 ? currentPrompt.Substring(currentPrompt.Length - 500) 
                 : currentPrompt;
             _logger.Log($"Prompt preview (last 500 chars): ...{promptPreview}");
+            // Log the last 50 chars to see exactly how it ends
+            var promptEnd = currentPrompt.Length > 50 
+                ? currentPrompt.Substring(currentPrompt.Length - 50) 
+                : currentPrompt;
+            _logger.Log($"Prompt ends with: ...{promptEnd.Replace("\n", "\\n").Replace("\r", "\\r")}");
             var response = await _llmService.GenerateResponseAsync(currentPrompt, cancellationToken);
             _logger.Log($"Raw response length: {response.Length} chars");
             conversationHistory.AppendLine(response);
@@ -83,9 +89,6 @@ public class AdvisorService
 
             _logger.Log($"Tool call detected: {toolCall.Value.name}");
             var toolResult = await ExecuteToolCallAsync(toolCall.Value.name, toolCall.Value.arguments, cancellationToken);
-            // Add tool result and explicitly prompt the assistant to continue
-            // Use Append instead of AppendLine to have more control over formatting
-            conversationHistory.Append($"\nTool Result: {toolResult}\n\nAssistant: ");
             iteration++;
         }
 
@@ -99,6 +102,11 @@ public class AdvisorService
 
 Available Tools:
 {toolsDescription}
+
+IMPORTANT: Only call tools when the user's question REQUIRES actual data from their Oura ring. Do NOT call tools for:
+- Simple definitions or explanations (e.g., ""What does BPM stand for?"")
+- General health questions that don't need specific data
+- Questions you can answer from general knowledge
 
 When the user asks a question that requires data, you should call the appropriate tool using this format:
 TOOL_CALL: tool_name
