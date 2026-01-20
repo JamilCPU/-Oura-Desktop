@@ -56,19 +56,36 @@ public class AdvisorService
         while (iteration < maxIterations)
         {
             _logger.Log($"Generating response (iteration {iteration + 1})...");
-            var response = await _llmService.GenerateResponseAsync(conversationHistory.ToString(), cancellationToken);
+            var currentPrompt = conversationHistory.ToString();
+            // Log a preview of the prompt to debug
+            var promptPreview = currentPrompt.Length > 500 
+                ? currentPrompt.Substring(currentPrompt.Length - 500) 
+                : currentPrompt;
+            _logger.Log($"Prompt preview (last 500 chars): ...{promptPreview}");
+            var response = await _llmService.GenerateResponseAsync(currentPrompt, cancellationToken);
+            _logger.Log($"Raw response length: {response.Length} chars");
             conversationHistory.AppendLine(response);
 
             var toolCall = ParseToolCall(response);
             if (toolCall == null)
             {
-                _logger.Log("Final response ready");
-                return response.Trim();
+                var trimmedResponse = response.Trim();
+                _logger.Log($"Final response ready (trimmed length: {trimmedResponse.Length} chars)");
+                if (string.IsNullOrEmpty(trimmedResponse))
+                {
+                    _logger.LogError("Response is empty after trimming", null);
+                    _logger.Log($"Raw response preview (first 200 chars): {(response.Length > 0 ? response.Substring(0, Math.Min(200, response.Length)) : "<empty>")}");
+                    // If response is empty, return a fallback message
+                    return "I apologize, but I didn't receive a valid response. Please try asking your question again.";
+                }
+                return trimmedResponse;
             }
 
             _logger.Log($"Tool call detected: {toolCall.Value.name}");
             var toolResult = await ExecuteToolCallAsync(toolCall.Value.name, toolCall.Value.arguments, cancellationToken);
-            conversationHistory.AppendLine($"\nTool Result: {toolResult}\n");
+            // Add tool result and explicitly prompt the assistant to continue
+            // Use Append instead of AppendLine to have more control over formatting
+            conversationHistory.Append($"\nTool Result: {toolResult}\n\nAssistant: ");
             iteration++;
         }
 
