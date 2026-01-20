@@ -201,8 +201,9 @@ public class LocalLlmService : ILocalLlmService, IDisposable
 
         var inferenceParams = new InferenceParams
         {
-            MaxTokens = 512,
-            AntiPrompts = new[] { "User:", "\n\n" },
+            MaxTokens = 2048,
+
+            AntiPrompts = new[] { "User:" },
             SamplingPipeline = new LLama.Sampling.DefaultSamplingPipeline
             {
                 Temperature = 0.7f
@@ -211,9 +212,16 @@ public class LocalLlmService : ILocalLlmService, IDisposable
 
         var response = new System.Text.StringBuilder();
         var tokenCount = 0;
+        var firstTokenReceived = false;
         
         await foreach (var token in _executor.InferAsync(prompt, inferenceParams, cancellationToken))
         {
+            if (!firstTokenReceived)
+            {
+                _logger.Log($"First token received: '{token}'");
+                firstTokenReceived = true;
+            }
+            
             response.Append(token);
             tokenCount++;
             
@@ -224,12 +232,16 @@ public class LocalLlmService : ILocalLlmService, IDisposable
             }
         }
         
-        if (tokenCount > 0)
+        var responseText = response.ToString();
+        _logger.Log($"Generated {tokenCount} tokens, response length: {responseText.Length} chars");
+        
+        if (tokenCount == 0)
         {
-            _logger.Log($"[{tokenCount} tokens]");
+            _logger.LogError("No tokens generated - InferAsync returned empty sequence", null);
+            _logger.Log($"Prompt length: {prompt.Length} chars, ends with: ...{prompt.Substring(Math.Max(0, prompt.Length - 100))}");
         }
 
-        return response.ToString();
+        return responseText;
     }
 
     public void Dispose()
