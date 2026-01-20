@@ -171,7 +171,7 @@ public class MainWindowViewModel : ViewModelBase, IDisposable
 
     public async Task LoadAllDataAsync()
     {
-        _logger.Log("Loading all data...");
+        _logger.Log("Refreshing heart rate, activity, and stress data...");
         if (IsLoading)
             return;
 
@@ -397,7 +397,6 @@ public class MainWindowViewModel : ViewModelBase, IDisposable
         {
             var response = await advisorService.ProcessQueryAsync(query);
             AdvisorResponse = response;
-            _logger.Log($"Response received ({response.Length} chars)");
         }
         catch (Exception ex)
         {
