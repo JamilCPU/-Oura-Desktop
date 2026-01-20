@@ -85,7 +85,7 @@ public class LlmConfigProvider : ILlmConfigProvider
         {
             ModelPath = defaultModelPath,
             Backend = "cpu",
-            ContextSize = 4096,
+            ContextSize = 128000,
             GpuLayerCount = 0
         };
 
