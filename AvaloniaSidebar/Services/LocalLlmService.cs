@@ -246,7 +246,6 @@ public class LocalLlmService : ILocalLlmService, IDisposable
 
     public void Dispose()
     {
-        // InteractiveExecutor doesn't implement IDisposable in LLamaSharp 0.13.0
         _context?.Dispose();
         _weights?.Dispose();
         _initialized = false;
