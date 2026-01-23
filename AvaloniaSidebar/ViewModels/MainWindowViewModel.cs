@@ -382,7 +382,7 @@ public class MainWindowViewModel : ViewModelBase, IDisposable
         return "";
     }
 
-    public async Task ProcessAdvisorQueryAsync(string query, AvaloniaSidebar.Services.AdvisorService advisorService)
+    public async Task ProcessAdvisorQueryAsync(string query, AvaloniaSidebar.Services.AdvisorService? advisorService)
     {
         if (IsAdvisorLoading || string.IsNullOrWhiteSpace(query))
             return;
@@ -395,6 +395,11 @@ public class MainWindowViewModel : ViewModelBase, IDisposable
 
         try
         {
+            if (advisorService == null)
+            {
+                throw new InvalidOperationException("Advisor service is not available. Please try again.");
+            }
+            
             var response = await advisorService.ProcessQueryAsync(query);
             AdvisorResponse = response;
         }

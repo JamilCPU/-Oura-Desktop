@@ -20,10 +20,15 @@ namespace AvaloniaSidebar;
 public partial class MainWindow : Window
 {
     private const double SidebarWidth = 250;
+    private const int AdvisorIdleTimeoutSeconds = 30;
     private IScreenSpaceReserver? _spaceReserver;
     private IOAuthService? _oauthService;
     private MainWindowViewModel? _viewModel;
     private AdvisorService? _advisorService;
+    private LocalLlmService? _llmService;
+    private McpClientService? _mcpClientService;
+    private Timer? _advisorIdleTimer;
+    private readonly object _advisorLock = new object();
     private readonly Logger _logger;
 
     public MainWindow()
@@ -222,44 +227,96 @@ public partial class MainWindow : Window
         var isLlmAvailable = llmConfigProvider.IsConfigured();
         _viewModel.IsLlmAvailable = isLlmAvailable;
         
-        // Initialize advisor service only if LLM is available
-        if (isLlmAvailable)
-        {
-            try
-            {
-                var modelDownloadService = new backend.api.llm.impl.ModelDownloadService();
-                var llmService = new LocalLlmService(llmConfigProvider, modelDownloadService);
-                var mcpClientService = new McpClientService();
-                _advisorService = new AdvisorService(llmService, mcpClientService);
-                
-                // Initialize asynchronously in background
-                _ = Task.Run(async () =>
-                {
-                    try
-                    {
-                        _logger.Log("Starting advisor service initialization...");
-                        await _advisorService.InitializeAsync();
-                        _logger.Log("Advisor service initialized successfully.");
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError("Error initializing advisor service", ex);
-                    }
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError("Error creating advisor service", ex);
-            }
-        }
+        // Advisor service will be initialized lazily on first use
         
         _ = _viewModel.LoadAllDataAsync();
     }
 
     private void MainWindow_Closing(object? sender, WindowClosingEventArgs e)
     {
+        _advisorIdleTimer?.Dispose();
+        DisposeAdvisorService();
         _spaceReserver?.Dispose();
         _viewModel?.Dispose();
+    }
+    
+    private async Task<bool> EnsureAdvisorServiceInitializedAsync()
+    {
+        lock (_advisorLock)
+        {
+            if (_advisorService != null)
+            {
+                // Reset idle timer since we're using it
+                ResetAdvisorIdleTimer();
+                return true;
+            }
+        }
+        
+        try
+        {
+            _logger.Log("Initializing advisor service (lazy load)...");
+            
+            var llmConfigProvider = new backend.api.llm.impl.LlmConfigProvider();
+            if (!llmConfigProvider.IsConfigured())
+            {
+                _logger.LogError("LLM model not configured", null);
+                return false;
+            }
+            
+            var modelDownloadService = new backend.api.llm.impl.ModelDownloadService();
+            var llmService = new LocalLlmService(llmConfigProvider, modelDownloadService);
+            var mcpClientService = new McpClientService();
+            var advisorService = new AdvisorService(llmService, mcpClientService);
+            
+            await advisorService.InitializeAsync();
+            
+            lock (_advisorLock)
+            {
+                _llmService = llmService;
+                _mcpClientService = mcpClientService;
+                _advisorService = advisorService;
+                ResetAdvisorIdleTimer();
+            }
+            
+            _logger.Log("Advisor service initialized successfully.");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError("Error initializing advisor service", ex);
+            return false;
+        }
+    }
+    
+    private void ResetAdvisorIdleTimer()
+    {
+        _advisorIdleTimer?.Dispose();
+        _advisorIdleTimer = new Timer(_ => DisposeAdvisorService(), null, 
+            TimeSpan.FromSeconds(AdvisorIdleTimeoutSeconds), Timeout.InfiniteTimeSpan);
+    }
+    
+    private void DisposeAdvisorService()
+    {
+        lock (_advisorLock)
+        {
+            if (_advisorService == null)
+                return;
+            
+            _logger.Log("Disposing advisor service (idle timeout)...");
+            
+            _advisorIdleTimer?.Dispose();
+            _advisorIdleTimer = null;
+            
+            // AdvisorService doesn't implement IDisposable, but its dependencies do
+            _llmService?.Dispose();
+            _mcpClientService?.Dispose();
+            
+            _llmService = null;
+            _mcpClientService = null;
+            _advisorService = null;
+            
+            _logger.Log("Advisor service disposed.");
+        }
     }
     
     private void MainWindow_PropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
@@ -341,7 +398,7 @@ public partial class MainWindow : Window
                 if (downloadButton != null)
                 {
                     // Progress<T> callbacks run on the captured synchronization context (UI thread)
-                        var percent = Math.Min(100, (int)((bytesDownloaded * 100) / totalBytes.Value));
+                        var percent = totalBytes.HasValue ? Math.Min(100, (int)((bytesDownloaded * 100) / totalBytes.Value)) : 0;
                         downloadButton.Content = $"Downloading... {percent}%";
                 }
             });
@@ -374,25 +431,7 @@ public partial class MainWindow : Window
             // Update the ViewModel to reflect that LLM is now available
             _viewModel.IsLlmAvailable = true;
             
-            // Initialize the advisor service now that the model is available
-            var llmService = new LocalLlmService(llmConfigProvider, modelDownloadService);
-            var mcpClientService = new McpClientService();
-            _advisorService = new AdvisorService(llmService, mcpClientService);
-            
-            // Initialize asynchronously in background
-            _ = Task.Run(async () =>
-            {
-                try
-                {
-                    _logger.Log("Initializing advisor service after model download...");
-                    await _advisorService.InitializeAsync();
-                    _logger.Log("Advisor service initialized successfully after model download.");
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError("Error initializing advisor service after download", ex);
-                }
-            });
+            // Advisor service will be initialized lazily on first use
             
             if (downloadButton != null)
             {
@@ -433,14 +472,24 @@ public partial class MainWindow : Window
             var inputText = textBox.Text;
             textBox.Text = string.Empty; // Clear the input after sending
             
-            if (_viewModel != null && _advisorService != null)
+            if (_viewModel == null)
+                return;
+            
+            // Ensure advisor service is initialized (lazy load)
+            var initialized = await EnsureAdvisorServiceInitializedAsync();
+            if (!initialized)
             {
-                await _viewModel.ProcessAdvisorQueryAsync(inputText, _advisorService);
+                _logger.LogError("Failed to initialize advisor service", null);
+                // Process with null advisorService to trigger error handling in ViewModel
+                await _viewModel.ProcessAdvisorQueryAsync(inputText, null);
+                return;
             }
-            else
-            {
-                _logger.Log("Advisor service not initialized yet. Please wait...");
-            }
+            
+            // Process the query
+            await _viewModel.ProcessAdvisorQueryAsync(inputText, _advisorService!);
+            
+            // Reset idle timer after query completes
+            ResetAdvisorIdleTimer();
         }
     }
 
